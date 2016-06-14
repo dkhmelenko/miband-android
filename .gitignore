@@ -38,3 +38,7 @@ captures/
 
 # Keystore files
 *.jks
+/.idea
+/miband-sdk/*.iml
+/app/*.iml
+/*.classpath
