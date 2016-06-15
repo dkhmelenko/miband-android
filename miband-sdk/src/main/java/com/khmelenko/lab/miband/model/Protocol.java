@@ -1,6 +1,7 @@
 package com.khmelenko.lab.miband.model;
 
-public class Protocol {
+public final class Protocol {
+
     public static final byte[] PAIR = {2};
     public static final byte[] VIBRATION_WITH_LED = {1};
     public static final byte[] VIBRATION_10_TIMES_WITH_LED = {2};

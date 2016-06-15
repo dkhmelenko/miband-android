@@ -5,13 +5,13 @@ import java.util.Calendar;
 import java.util.Locale;
 
 /**
- * 手环电池相关信息类
+ * Battery info
+ *
+ * @author Dmytro Khmelenko
  */
-public class BatteryInfo {
-    /**
-     * 电池当前所在的状态
-     */
-    static enum Status {
+public final class BatteryInfo {
+
+    enum Status {
         UNKNOWN, LOW, FULL, CHARGING, NOT_CHARGING;
 
         public static Status fromByte(byte b) {
@@ -31,72 +31,86 @@ public class BatteryInfo {
         }
     }
 
-    private int level;
-    private int cycles;
-    private Status status;
-    private Calendar lastChargedDate;
+    private int mLevel;
+    private int mCycles;
+    private Status mStatus;
+    private Calendar mLastChargedDate;
 
     private BatteryInfo() {
 
     }
 
+    /**
+     * Creates an instance of the battery info from byte data
+     *
+     * @param data Byte data
+     * @return Battery info or null, if data are invalid
+     */
     public static BatteryInfo fromByteData(byte[] data) {
         if (data.length < 10) {
             return null;
         }
         BatteryInfo info = new BatteryInfo();
 
-        info.level = data[0];
-        info.status = Status.fromByte(data[9]);
-        info.cycles = 0xffff & (0xff & data[7] | (0xff & data[8]) << 8);
-        info.lastChargedDate = Calendar.getInstance();
+        info.mLevel = data[0];
+        info.mStatus = Status.fromByte(data[9]);
+        info.mCycles = 0xffff & (0xff & data[7] | (0xff & data[8]) << 8);
+        info.mLastChargedDate = Calendar.getInstance();
 
-        info.lastChargedDate.set(Calendar.YEAR, data[1] + 2000);
-        info.lastChargedDate.set(Calendar.MONTH, data[2]);
-        info.lastChargedDate.set(Calendar.DATE, data[3]);
+        info.mLastChargedDate.set(Calendar.YEAR, data[1] + 2000);
+        info.mLastChargedDate.set(Calendar.MONTH, data[2]);
+        info.mLastChargedDate.set(Calendar.DATE, data[3]);
 
-        info.lastChargedDate.set(Calendar.HOUR_OF_DAY, data[4]);
-        info.lastChargedDate.set(Calendar.MINUTE, data[5]);
-        info.lastChargedDate.set(Calendar.SECOND, data[6]);
+        info.mLastChargedDate.set(Calendar.HOUR_OF_DAY, data[4]);
+        info.mLastChargedDate.set(Calendar.MINUTE, data[5]);
+        info.mLastChargedDate.set(Calendar.SECOND, data[6]);
 
         return info;
     }
 
     public String toString() {
-        return "cycles:" + this.getCycles()
-                + ",level:" + this.getLevel()
-                + ",status:" + this.getStatus()
-                + ",last:" + new SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.CHINA).format(this.getLastChargedDate().getTime());
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.getDefault());
+        String formattedDate = formatter.format(getLastChargedDate().getTime());
+        return "cycles:" + getCycles()
+                + ",level:" + getLevel()
+                + ",status:" + getStatus()
+                + ",last:" + formattedDate;
     }
 
     /**
-     * 电池电量百分比, level=40 表示有40%的电量
+     * Gets battery level
+     *
+     * @return Battery level
      */
     public int getLevel() {
-        return level;
+        return mLevel;
     }
 
     /**
-     * 充电循环次数
+     * Gets cycles
+     *
+     * @return Cycles
      */
     public int getCycles() {
-        return cycles;
+        return mCycles;
     }
 
     /**
-     * 当前状态
+     * Gets battery status
      *
-     * @see Status
+     * @return Battery status
      */
     public Status getStatus() {
-        return status;
+        return mStatus;
     }
 
     /**
-     * 最后充电时间
+     * Gets last charging date
+     *
+     * @return Last charging date
      */
     public Calendar getLastChargedDate() {
-        return lastChargedDate;
+        return mLastChargedDate;
     }
 
 }

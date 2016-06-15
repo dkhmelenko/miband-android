@@ -1,5 +1,16 @@
 package com.khmelenko.lab.miband.listeners;
 
+/**
+ * Listener for realtime steps notifications
+ *
+ * @author Dmytro Khmelenko
+ */
 public interface RealtimeStepsNotifyListener {
-    public void onNotify(int steps);
+
+    /**
+     * Called when new notification arrived
+     *
+     * @param steps Steps amount
+     */
+    void onNotify(int steps);
 }

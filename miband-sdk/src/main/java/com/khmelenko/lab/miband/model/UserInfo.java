@@ -3,46 +3,57 @@ package com.khmelenko.lab.miband.model;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-public class UserInfo {
+/**
+ * User information
+ *
+ * @author Dmytro Khmelenko
+ */
+public final class UserInfo {
 
-    private int uid;
-    private byte gender;
-    private byte age;
-    private byte height;        // cm
-    private byte weight;        // kg
-    private String alias = "";
-    private byte type;
+    private int mUid;
+    private byte mGender;
+    private byte mAge;
+    private byte mHeight;
+    private byte mWeight;
+    private String mAlias = "";
+    private byte mType;
 
     private UserInfo() {
 
     }
 
     public UserInfo(int uid, int gender, int age, int height, int weight, String alias, int type) {
-        this.uid = uid;
-        this.gender = (byte) gender;
-        this.age = (byte) age;
-        this.height = (byte) (height & 0xFF);
-        this.weight = (byte) weight;
-        this.alias = alias;
-        this.type = (byte) type;
+        mUid = uid;
+        mGender = (byte) gender;
+        mAge = (byte) age;
+        mHeight = (byte) (height & 0xFF);
+        mWeight = (byte) weight;
+        mAlias = alias;
+        mType = (byte) type;
     }
 
+    /**
+     * Creates an instance of user info from byte data
+     *
+     * @param data Byte data
+     * @return User info object or null, if data are invalid
+     */
     public static UserInfo fromByteData(byte[] data) {
         if (data.length < 20) {
             return null;
         }
         UserInfo info = new UserInfo();
 
-        info.uid = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
-        info.gender = data[4];
-        info.age = data[5];
-        info.height = data[6];
-        info.weight = data[7];
-        info.type = data[8];
+        info.mUid = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+        info.mGender = data[4];
+        info.mAge = data[5];
+        info.mHeight = data[6];
+        info.mWeight = data[7];
+        info.mType = data[8];
         try {
-            info.alias = new String(data, 9, 8, "UTF-8");
+            info.mAlias = new String(data, 9, 8, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            info.alias = "";
+            info.mAlias = "";
         }
 
         return info;
@@ -51,20 +62,20 @@ public class UserInfo {
     public byte[] getBytes(String mBTAddress) {
         byte[] aliasBytes;
         try {
-            aliasBytes = this.alias.getBytes("UTF-8");
+            aliasBytes = this.mAlias.getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
             aliasBytes = new byte[0];
         }
         ByteBuffer bf = ByteBuffer.allocate(20);
-        bf.put((byte) (uid & 0xff));
-        bf.put((byte) (uid >> 8 & 0xff));
-        bf.put((byte) (uid >> 16 & 0xff));
-        bf.put((byte) (uid >> 24 & 0xff));
-        bf.put(this.gender);
-        bf.put(this.age);
-        bf.put(this.height);
-        bf.put(this.weight);
-        bf.put(this.type);
+        bf.put((byte) (mUid & 0xff));
+        bf.put((byte) (mUid >> 8 & 0xff));
+        bf.put((byte) (mUid >> 16 & 0xff));
+        bf.put((byte) (mUid >> 24 & 0xff));
+        bf.put(this.mGender);
+        bf.put(this.mAge);
+        bf.put(this.mHeight);
+        bf.put(this.mWeight);
+        bf.put(this.mType);
         bf.put((byte) 4);
         bf.put((byte) 0);
 
@@ -105,61 +116,75 @@ public class UserInfo {
     }
 
     public String toString() {
-        return "uid:" + this.uid
-                + ",gender:" + this.gender
-                + ",age:" + this.age
-                + ",height:" + this.getHeight()
-                + ",weight:" + this.getWeight()
-                + ",alias:" + this.alias
-                + ",type:" + this.type;
+        return "uid:" + mUid
+                + ",gender:" + mGender
+                + ",age:" + mAge
+                + ",height:" + getHeight()
+                + ",weight:" + getWeight()
+                + ",alias:" + mAlias
+                + ",type:" + mType;
     }
 
     /**
-     * @return the uid
+     * Gets UID
+     *
+     * @return UID
      */
     public int getUid() {
-        return uid;
+        return mUid;
     }
 
     /**
-     * @return the gender
+     * Gets gender
+     *
+     * @return Gender
      */
     public byte getGender() {
-        return gender;
+        return mGender;
     }
 
     /**
-     * @return the age
+     * Gets age
+     *
+     * @return Age
      */
     public byte getAge() {
-        return age;
+        return mAge;
     }
 
     /**
-     * @return the height
+     * Gets height in cm
+     *
+     * @return Height in cm
      */
     public int getHeight() {
-        return (height & 0xFF);
+        return (mHeight & 0xFF);
     }
 
     /**
-     * @return the weight
+     * Gets weight in kg
+     *
+     * @return Weight in kg
      */
     public int getWeight() {
-        return weight & 0xFF;
+        return mWeight & 0xFF;
     }
 
     /**
-     * @return the alias
+     * Gets alias
+     *
+     * @return Alias
      */
     public String getAlias() {
-        return alias;
+        return mAlias;
     }
 
     /**
-     * @return the type
+     * Gets type
+     *
+     * @return Type
      */
     public byte getType() {
-        return type;
+        return mType;
     }
 }
