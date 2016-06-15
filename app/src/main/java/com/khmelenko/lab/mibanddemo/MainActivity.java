@@ -16,7 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.khmelenko.lab.miband.ActionCallback;
+import com.khmelenko.lab.miband.listeners.ActionCallback;
 import com.khmelenko.lab.miband.MiBand;
 import com.khmelenko.lab.miband.listeners.HeartRateNotifyListener;
 import com.khmelenko.lab.miband.listeners.NotifyListener;

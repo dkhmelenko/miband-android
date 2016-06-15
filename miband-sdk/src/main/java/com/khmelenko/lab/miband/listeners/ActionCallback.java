@@ -1,4 +1,4 @@
-package com.khmelenko.lab.miband;
+package com.khmelenko.lab.miband.listeners;
 
 /**
  * Action callback

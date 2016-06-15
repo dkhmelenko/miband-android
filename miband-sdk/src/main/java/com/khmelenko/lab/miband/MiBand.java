@@ -10,6 +10,7 @@ import android.bluetooth.le.ScanCallback;
 import android.content.Context;
 import android.util.Log;
 
+import com.khmelenko.lab.miband.listeners.ActionCallback;
 import com.khmelenko.lab.miband.listeners.HeartRateNotifyListener;
 import com.khmelenko.lab.miband.listeners.NotifyListener;
 import com.khmelenko.lab.miband.listeners.RealtimeStepsNotifyListener;
@@ -22,26 +23,26 @@ import com.khmelenko.lab.miband.model.VibrationMode;
 
 import java.util.Arrays;
 
-public class MiBand {
+public final class MiBand {
 
     private static final String TAG = "miband-android";
 
-    private Context context;
-    private BluetoothIO io;
+    private final Context mContext;
+    private final BluetoothIO mBluetoothIO;
 
     public MiBand(Context context) {
-        this.context = context;
-        this.io = new BluetoothIO();
+        mContext = context;
+        mBluetoothIO = new BluetoothIO();
     }
 
     public static void startScan(ScanCallback callback) {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (null == adapter) {
+        if (adapter == null) {
             Log.e(TAG, "BluetoothAdapter is null");
             return;
         }
         BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
-        if (null == scanner) {
+        if (scanner == null) {
             Log.e(TAG, "BluetoothLeScanner is null");
             return;
         }
@@ -50,12 +51,12 @@ public class MiBand {
 
     public static void stopScan(ScanCallback callback) {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (null == adapter) {
+        if (adapter == null) {
             Log.e(TAG, "BluetoothAdapter is null");
             return;
         }
         BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
-        if (null == scanner) {
+        if (scanner == null) {
             Log.e(TAG, "BluetoothLeScanner is null");
             return;
         }
@@ -68,11 +69,11 @@ public class MiBand {
      * @param callback
      */
     public void connect(BluetoothDevice device, final ActionCallback callback) {
-        this.io.connect(context, device, callback);
+        mBluetoothIO.connect(mContext, device, callback);
     }
 
     public void setDisconnectedListener(NotifyListener disconnectedListener) {
-        this.io.setDisconnectedListener(disconnectedListener);
+        mBluetoothIO.setDisconnectedListener(disconnectedListener);
     }
 
     /**
@@ -99,11 +100,11 @@ public class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        this.io.writeAndRead(Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
+        mBluetoothIO.writeAndRead(Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
     }
 
     public BluetoothDevice getDevice() {
-        return this.io.getDevice();
+        return mBluetoothIO.getDevice();
     }
 
     /**
@@ -113,7 +114,7 @@ public class MiBand {
      * @return data : int, rssi值
      */
     public void readRssi(ActionCallback callback) {
-        this.io.readRssi(callback);
+        mBluetoothIO.readRssi(callback);
     }
 
     /**
@@ -141,7 +142,7 @@ public class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        this.io.readCharacteristic(Profile.UUID_CHAR_BATTERY, ioCallback);
+        mBluetoothIO.readCharacteristic(Profile.UUID_CHAR_BATTERY, ioCallback);
     }
 
     /**
@@ -162,18 +163,18 @@ public class MiBand {
             default:
                 return;
         }
-        this.io.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocal, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocal, null);
     }
 
     /**
      * 停止以模式Protocol.VIBRATION_10_TIMES_WITH_LED 开始的震动
      */
     public void stopVibration() {
-        this.io.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, Protocol.STOP_VIBRATION, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, Protocol.STOP_VIBRATION, null);
     }
 
     public void setNormalNotifyListener(NotifyListener listener) {
-        this.io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_NOTIFICATION, listener);
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_NOTIFICATION, listener);
     }
 
     /**
@@ -183,7 +184,7 @@ public class MiBand {
      * @param listener
      */
     public void setSensorDataNotifyListener(final NotifyListener listener) {
-        this.io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, new NotifyListener() {
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, new NotifyListener() {
 
             @Override
             public void onNotify(byte[] data) {
@@ -196,14 +197,14 @@ public class MiBand {
      * 开启重力感应器数据通知
      */
     public void enableSensorDataNotify() {
-        this.io.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY, null);
     }
 
     /**
      * 关闭重力感应器数据通知
      */
     public void disableSensorDataNotify() {
-        this.io.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY, null);
     }
 
     /**
@@ -213,7 +214,7 @@ public class MiBand {
      * @param listener
      */
     public void setRealtimeStepsNotifyListener(final RealtimeStepsNotifyListener listener) {
-        this.io.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, new NotifyListener() {
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, new NotifyListener() {
 
             @Override
             public void onNotify(byte[] data) {
@@ -230,14 +231,14 @@ public class MiBand {
      * 开启实时步数通知
      */
     public void enableRealtimeStepsNotify() {
-        this.io.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY, null);
     }
 
     /**
      * 关闭实时步数通知
      */
     public void disableRealtimeStepsNotify() {
-        this.io.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY, null);
     }
 
     /**
@@ -261,7 +262,7 @@ public class MiBand {
             default:
                 return;
         }
-        this.io.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, protocal, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, protocal, null);
     }
 
     /**
@@ -270,13 +271,13 @@ public class MiBand {
      * @param userInfo
      */
     public void setUserInfo(UserInfo userInfo) {
-        BluetoothDevice device = this.io.getDevice();
+        BluetoothDevice device = mBluetoothIO.getDevice();
         byte[] data = userInfo.getBytes(device.getAddress());
-        this.io.writeCharacteristic(Profile.UUID_CHAR_USER_INFO, data, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_USER_INFO, data, null);
     }
 
     public void showServicesAndCharacteristics() {
-        for (BluetoothGattService service : this.io.gatt.getServices()) {
+        for (BluetoothGattService service : mBluetoothIO.gatt.getServices()) {
             Log.d(TAG, "onServicesDiscovered:" + service.getUuid());
 
             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
@@ -290,7 +291,7 @@ public class MiBand {
     }
 
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
-        this.io.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, new NotifyListener() {
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, new NotifyListener() {
             @Override
             public void onNotify(byte[] data) {
                 Log.d(TAG, Arrays.toString(data));
@@ -304,7 +305,7 @@ public class MiBand {
 
     public void startHeartRateScan() {
 
-        MiBand.this.io.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN, null);
     }
 
 }
