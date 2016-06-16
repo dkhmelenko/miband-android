@@ -171,6 +171,10 @@ final class BluetoothIO extends BluetoothGattCallback {
         mNotifyListeners.put(characteristicId, listener);
     }
 
+    public BluetoothGatt getGatt() {
+        return mBluetoothGatt;
+    }
+
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
         super.onConnectionStateChange(gatt, status, newState);

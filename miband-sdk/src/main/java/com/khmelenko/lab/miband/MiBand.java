@@ -277,7 +277,7 @@ public final class MiBand {
     }
 
     public void showServicesAndCharacteristics() {
-        for (BluetoothGattService service : mBluetoothIO.gatt.getServices()) {
+        for (BluetoothGattService service : mBluetoothIO.getGatt().getServices()) {
             Log.d(TAG, "onServicesDiscovered:" + service.getUuid());
 
             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
