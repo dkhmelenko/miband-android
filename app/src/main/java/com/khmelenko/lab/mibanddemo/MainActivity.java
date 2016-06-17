@@ -113,7 +113,7 @@ public class MainActivity extends Activity {
                         }
                     });
                 } else if (position == menuIndex++) {
-                    miband.showServicesAndCharacteristics();
+                    // TODO miband.showServicesAndCharacteristics();
                 } else if (position == menuIndex++) {
                     miband.readRssi(new ActionCallback() {
 

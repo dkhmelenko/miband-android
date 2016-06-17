@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
@@ -27,7 +28,7 @@ final class BluetoothIO extends BluetoothGattCallback {
     private BluetoothGatt mBluetoothGatt;
     private ActionCallback mCallback;
 
-    private HashMap<UUID, NotifyListener> mNotifyListeners = new HashMap<UUID, NotifyListener>();
+    private HashMap<UUID, NotifyListener> mNotifyListeners = new HashMap<>();
     private NotifyListener mDisconnectedListener = null;
 
     /**
@@ -56,7 +57,7 @@ final class BluetoothIO extends BluetoothGattCallback {
      *
      * @return Connected device or null
      */
-    public BluetoothDevice getDevice() {
+    public BluetoothDevice getConnectedDevice() {
         if (mBluetoothGatt == null) {
             Log.e(TAG, "connect to miband first");
             return null;
@@ -64,12 +65,20 @@ final class BluetoothIO extends BluetoothGattCallback {
         return mBluetoothGatt.getDevice();
     }
 
-    public void writeAndRead(final UUID uuid, byte[] valueToWrite, final ActionCallback callback) {
+    /**
+     * Writes and reads data to the service
+     *
+     * @param serviceUUID  Service UUID
+     * @param uuid         Characteristic UUID
+     * @param valueToWrite Value to write
+     * @param callback     Callback
+     */
+    public void writeAndRead(final UUID serviceUUID, final UUID uuid, byte[] valueToWrite, final ActionCallback callback) {
         ActionCallback readCallback = new ActionCallback() {
 
             @Override
             public void onSuccess(Object characteristic) {
-                readCharacteristic(uuid, callback);
+                readCharacteristic(serviceUUID, uuid, callback);
             }
 
             @Override
@@ -77,13 +86,17 @@ final class BluetoothIO extends BluetoothGattCallback {
                 callback.onFail(errorCode, msg);
             }
         };
-        writeCharacteristic(uuid, valueToWrite, readCallback);
+        writeCharacteristic(serviceUUID, uuid, valueToWrite, readCallback);
     }
 
-    public void writeCharacteristic(UUID characteristicUUID, byte[] value, ActionCallback callback) {
-        writeCharacteristic(Profile.UUID_SERVICE_MILI, characteristicUUID, value, callback);
-    }
-
+    /**
+     * Writes data to the service
+     *
+     * @param serviceUUID        Service UUID
+     * @param characteristicUUID Characteristic UUID
+     * @param value              Value to write
+     * @param callback           Callback
+     */
     public void writeCharacteristic(UUID serviceUUID, UUID characteristicUUID, byte[] value, ActionCallback callback) {
         try {
             if (mBluetoothGatt == null) {
@@ -106,6 +119,13 @@ final class BluetoothIO extends BluetoothGattCallback {
         }
     }
 
+    /**
+     * Reads data from the service
+     *
+     * @param serviceUUID Service UUID
+     * @param uuid        Characteristic UUID
+     * @param callback    Callback
+     */
     public void readCharacteristic(UUID serviceUUID, UUID uuid, ActionCallback callback) {
         try {
             if (mBluetoothGatt == null) {
@@ -125,10 +145,6 @@ final class BluetoothIO extends BluetoothGattCallback {
             Log.e(TAG, "readCharacteristic", tr);
             onFail(-1, tr.getMessage());
         }
-    }
-
-    public void readCharacteristic(UUID uuid, ActionCallback callback) {
-        readCharacteristic(Profile.UUID_SERVICE_MILI, uuid, callback);
     }
 
     /**
@@ -171,8 +187,18 @@ final class BluetoothIO extends BluetoothGattCallback {
         mNotifyListeners.put(characteristicId, listener);
     }
 
-    public BluetoothGatt getGatt() {
-        return mBluetoothGatt;
+    public void showServicesAndCharacteristics() {
+        for (BluetoothGattService service : mBluetoothGatt.getServices()) {
+            Log.d(TAG, "onServicesDiscovered:" + service.getUuid());
+
+            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+                Log.d(TAG, "  char:" + characteristic.getUuid());
+
+                for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+                    Log.d(TAG, "    descriptor:" + descriptor.getUuid());
+                }
+            }
+        }
     }
 
     @Override
@@ -236,6 +262,7 @@ final class BluetoothIO extends BluetoothGattCallback {
             mNotifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
         }
     }
+
 
     private void onSuccess(Object data) {
         if (mCallback != null) {

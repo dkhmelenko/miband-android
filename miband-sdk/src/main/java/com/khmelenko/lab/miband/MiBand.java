@@ -100,11 +100,11 @@ public final class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        mBluetoothIO.writeAndRead(Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
+        mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
     }
 
     public BluetoothDevice getDevice() {
-        return mBluetoothIO.getDevice();
+        return mBluetoothIO.getConnectedDevice();
     }
 
     /**
@@ -142,7 +142,7 @@ public final class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        mBluetoothIO.readCharacteristic(Profile.UUID_CHAR_BATTERY, ioCallback);
+        mBluetoothIO.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY, ioCallback);
     }
 
     /**
@@ -197,14 +197,14 @@ public final class MiBand {
      * 开启重力感应器数据通知
      */
     public void enableSensorDataNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY, null);
     }
 
     /**
      * 关闭重力感应器数据通知
      */
     public void disableSensorDataNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY, null);
     }
 
     /**
@@ -231,14 +231,14 @@ public final class MiBand {
      * 开启实时步数通知
      */
     public void enableRealtimeStepsNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY, null);
     }
 
     /**
      * 关闭实时步数通知
      */
     public void disableRealtimeStepsNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY, null);
     }
 
     /**
@@ -262,7 +262,7 @@ public final class MiBand {
             default:
                 return;
         }
-        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_CONTROL_POINT, protocal, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocal, null);
     }
 
     /**
@@ -271,24 +271,12 @@ public final class MiBand {
      * @param userInfo
      */
     public void setUserInfo(UserInfo userInfo) {
-        BluetoothDevice device = mBluetoothIO.getDevice();
+        BluetoothDevice device = mBluetoothIO.getConnectedDevice();
         byte[] data = userInfo.getBytes(device.getAddress());
-        mBluetoothIO.writeCharacteristic(Profile.UUID_CHAR_USER_INFO, data, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data, null);
     }
 
-    public void showServicesAndCharacteristics() {
-        for (BluetoothGattService service : mBluetoothIO.getGatt().getServices()) {
-            Log.d(TAG, "onServicesDiscovered:" + service.getUuid());
 
-            for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-                Log.d(TAG, "  char:" + characteristic.getUuid());
-
-                for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-                    Log.d(TAG, "    descriptor:" + descriptor.getUuid());
-                }
-            }
-        }
-    }
 
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
         mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, new NotifyListener() {
