@@ -20,11 +20,11 @@ public interface BluetoothListener {
     void onDisconnected();
 
     /**
-     * Called on successful completion
+     * Called on getting successful result
      *
      * @param data Characteristic data
      */
-    void onSuccess(BluetoothGattCharacteristic data);
+    void onResult(BluetoothGattCharacteristic data);
 
     /**
      * Called on fail

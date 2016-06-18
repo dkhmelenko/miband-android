@@ -198,7 +198,9 @@ final class BluetoothIO extends BluetoothGattCallback {
         if (status == BluetoothGatt.GATT_SUCCESS) {
             mBluetoothGatt = gatt;
             checkAvailableServices();
-            notifyWithResult(null);
+            if(mBluetoothListener != null) {
+                mBluetoothListener.onConnectionEstablished();
+            }
         } else {
             notifyWithFail(status, "onServicesDiscovered fail");
         }
@@ -278,7 +280,7 @@ final class BluetoothIO extends BluetoothGattCallback {
      */
     private void notifyWithResult(BluetoothGattCharacteristic data) {
         if (mBluetoothListener != null && data != null) {
-            mBluetoothListener.onSuccess(data);
+            mBluetoothListener.onResult(data);
         }
     }
 
