@@ -10,7 +10,6 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
-import com.khmelenko.lab.miband.listeners.ActionCallback;
 import com.khmelenko.lab.miband.listeners.NotifyListener;
 import com.khmelenko.lab.miband.model.Profile;
 
@@ -20,36 +19,36 @@ import java.util.UUID;
 /**
  * Defines Bluetooth communication
  *
- * @author Dmytro Khmelenko
+ * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
  */
 final class BluetoothIO extends BluetoothGattCallback {
     private static final String TAG = "BluetoothIO";
 
-    private BluetoothGatt mBluetoothGatt;
-    private ActionCallback mCallback;
+    public static final int STATUS_ERROR = -1;
 
-    private HashMap<UUID, NotifyListener> mNotifyListeners = new HashMap<>();
-    private NotifyListener mDisconnectedListener = null;
+    private BluetoothGatt mBluetoothGatt;
+
+    private final BluetoothListener mBluetoothListener;
+    private final HashMap<UUID, NotifyListener> mNotifyListeners;
+
+    /**
+     * Constructor
+     *
+     * @param listener Callback listener
+     */
+    public BluetoothIO(BluetoothListener listener) {
+        mBluetoothListener = listener;
+        mNotifyListeners = new HashMap<>();
+    }
 
     /**
      * Connects to the Bluetooth device
      *
-     * @param context  Context
-     * @param device   Device to connect
-     * @param callback Callback
+     * @param context Context
+     * @param device  Device to connect
      */
-    public void connect(Context context, BluetoothDevice device, ActionCallback callback) {
-        mCallback = callback;
+    public void connect(Context context, BluetoothDevice device) {
         device.connectGatt(context, false, this);
-    }
-
-    /**
-     * Sets a listener for disconnect state
-     *
-     * @param disconnectedListener Listener
-     */
-    public void setDisconnectedListener(NotifyListener disconnectedListener) {
-        mDisconnectedListener = disconnectedListener;
     }
 
     /**
@@ -58,35 +57,11 @@ final class BluetoothIO extends BluetoothGattCallback {
      * @return Connected device or null
      */
     public BluetoothDevice getConnectedDevice() {
-        if (mBluetoothGatt == null) {
-            Log.e(TAG, "connect to miband first");
-            return null;
+        BluetoothDevice connectedDevice = null;
+        if (mBluetoothGatt != null) {
+            connectedDevice = mBluetoothGatt.getDevice();
         }
-        return mBluetoothGatt.getDevice();
-    }
-
-    /**
-     * Writes and reads data to the service
-     *
-     * @param serviceUUID  Service UUID
-     * @param uuid         Characteristic UUID
-     * @param valueToWrite Value to write
-     * @param callback     Callback
-     */
-    public void writeAndRead(final UUID serviceUUID, final UUID uuid, byte[] valueToWrite, final ActionCallback callback) {
-        ActionCallback readCallback = new ActionCallback() {
-
-            @Override
-            public void onSuccess(Object characteristic) {
-                readCharacteristic(serviceUUID, uuid, callback);
-            }
-
-            @Override
-            public void onFail(int errorCode, String msg) {
-                callback.onFail(errorCode, msg);
-            }
-        };
-        writeCharacteristic(serviceUUID, uuid, valueToWrite, readCallback);
+        return connectedDevice;
     }
 
     /**
@@ -95,27 +70,23 @@ final class BluetoothIO extends BluetoothGattCallback {
      * @param serviceUUID        Service UUID
      * @param characteristicUUID Characteristic UUID
      * @param value              Value to write
-     * @param callback           Callback
      */
-    public void writeCharacteristic(UUID serviceUUID, UUID characteristicUUID, byte[] value, ActionCallback callback) {
-        try {
-            if (mBluetoothGatt == null) {
-                Log.e(TAG, "connect to miband first");
-                throw new Exception("connect to miband first");
+    public void writeCharacteristic(UUID serviceUUID, UUID characteristicUUID, byte[] value) {
+        checkConnectionState();
+
+        BluetoothGattService service = mBluetoothGatt.getService(serviceUUID);
+        if (service != null) {
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicUUID);
+            if (characteristic != null) {
+                characteristic.setValue(value);
+                if (!mBluetoothGatt.writeCharacteristic(characteristic)) {
+                    notifyWithFail(STATUS_ERROR, "BluetoothGatt write operation failed");
+                }
+            } else {
+                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + characteristicUUID + " does not exist");
             }
-            mCallback = callback;
-            BluetoothGattCharacteristic chara = mBluetoothGatt.getService(serviceUUID).getCharacteristic(characteristicUUID);
-            if (chara == null) {
-                onFail(-1, "BluetoothGattCharacteristic " + characteristicUUID + " is not exsit");
-                return;
-            }
-            chara.setValue(value);
-            if (!mBluetoothGatt.writeCharacteristic(chara)) {
-                onFail(-1, "gatt.writeCharacteristic() return false");
-            }
-        } catch (Throwable tr) {
-            Log.e(TAG, "writeCharacteristic", tr);
-            onFail(-1, tr.getMessage());
+        } else {
+            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
         }
     }
 
@@ -124,70 +95,169 @@ final class BluetoothIO extends BluetoothGattCallback {
      *
      * @param serviceUUID Service UUID
      * @param uuid        Characteristic UUID
-     * @param callback    Callback
      */
-    public void readCharacteristic(UUID serviceUUID, UUID uuid, ActionCallback callback) {
-        try {
-            if (mBluetoothGatt == null) {
-                Log.e(TAG, "connect to miband first");
-                throw new Exception("connect to miband first");
+    public void readCharacteristic(UUID serviceUUID, UUID uuid) {
+        checkConnectionState();
+
+        BluetoothGattService service = mBluetoothGatt.getService(serviceUUID);
+        if (service != null) {
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(uuid);
+            if (characteristic != null) {
+                if (!mBluetoothGatt.readCharacteristic(characteristic)) {
+                    notifyWithFail(STATUS_ERROR, "BluetoothGatt read operation failed");
+                }
+            } else {
+                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + uuid + " does not exist");
             }
-            mCallback = callback;
-            BluetoothGattCharacteristic chara = mBluetoothGatt.getService(serviceUUID).getCharacteristic(uuid);
-            if (chara == null) {
-                onFail(-1, "BluetoothGattCharacteristic " + uuid + " is not exsit");
-                return;
-            }
-            if (!mBluetoothGatt.readCharacteristic(chara)) {
-                onFail(-1, "gatt.readCharacteristic() return false");
-            }
-        } catch (Throwable tr) {
-            Log.e(TAG, "readCharacteristic", tr);
-            onFail(-1, tr.getMessage());
+        } else {
+            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
         }
     }
 
     /**
      * Reads Received Signal Strength Indication (RSSI)
-     *
-     * @param callback Notification callback
      */
-    public void readRssi(ActionCallback callback) {
-        try {
-            if (mBluetoothGatt == null) {
-                Log.e(TAG, "connect to miband first");
-                throw new Exception("connect to miband first");
-            }
-            mCallback = callback;
-            mBluetoothGatt.readRemoteRssi();
-        } catch (Throwable tr) {
-            Log.e(TAG, "readRssi", tr);
-            onFail(-1, tr.getMessage());
-        }
+    public void readRssi() {
+        checkConnectionState();
 
+        if (!mBluetoothGatt.readRemoteRssi()) {
+            notifyWithFail(STATUS_ERROR, "Request RSSI value failed");
+        }
     }
 
+    /**
+     * Sets notification listener for specific service and specific characteristic
+     *
+     * @param serviceUUID      Service UUID
+     * @param characteristicId Characteristic UUID
+     * @param listener         New listener
+     */
     public void setNotifyListener(UUID serviceUUID, UUID characteristicId, NotifyListener listener) {
-        if (mBluetoothGatt == null) {
-            Log.e(TAG, "connect to miband first");
-            return;
+        checkConnectionState();
+
+        BluetoothGattService service = mBluetoothGatt.getService(serviceUUID);
+        if (service != null) {
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicId);
+            if (characteristic != null) {
+                mBluetoothGatt.setCharacteristicNotification(characteristic, true);
+                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(Profile.UUID_DESCRIPTOR_UPDATE_NOTIFICATION);
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                mBluetoothGatt.writeDescriptor(descriptor);
+                mNotifyListeners.put(characteristicId, listener);
+            } else {
+                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
+            }
+        } else {
+            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
         }
-
-        BluetoothGattCharacteristic chara = mBluetoothGatt.getService(serviceUUID).getCharacteristic(characteristicId);
-        if (chara == null) {
-            Log.e(TAG, "characteristicId " + characteristicId.toString() + " not found in service " + serviceUUID.toString());
-            return;
-        }
-
-
-        mBluetoothGatt.setCharacteristicNotification(chara, true);
-        BluetoothGattDescriptor descriptor = chara.getDescriptor(Profile.UUID_DESCRIPTOR_UPDATE_NOTIFICATION);
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        mBluetoothGatt.writeDescriptor(descriptor);
-        mNotifyListeners.put(characteristicId, listener);
     }
 
-    public void showServicesAndCharacteristics() {
+    /**
+     * Removes notification listener for the service and characteristic
+     *
+     * @param serviceUUID      Service UUID
+     * @param characteristicId Characteristic UUID
+     */
+    public void removeNotifyListener(UUID serviceUUID, UUID characteristicId) {
+        checkConnectionState();
+
+        BluetoothGattService service = mBluetoothGatt.getService(serviceUUID);
+        if (service != null) {
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicId);
+            if (characteristic != null) {
+                mBluetoothGatt.setCharacteristicNotification(characteristic, false);
+                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(Profile.UUID_DESCRIPTOR_UPDATE_NOTIFICATION);
+                descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+                mBluetoothGatt.writeDescriptor(descriptor);
+                mNotifyListeners.remove(characteristicId);
+            } else {
+                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
+            }
+        } else {
+            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
+        }
+    }
+
+    @Override
+    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+        super.onConnectionStateChange(gatt, status, newState);
+
+        if (newState == BluetoothProfile.STATE_CONNECTED) {
+            gatt.discoverServices();
+        } else {
+            gatt.close();
+            if (mBluetoothListener != null) {
+                mBluetoothListener.onDisconnected();
+            }
+        }
+    }
+
+    @Override
+    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+        super.onServicesDiscovered(gatt, status);
+        if (status == BluetoothGatt.GATT_SUCCESS) {
+            mBluetoothGatt = gatt;
+            checkAvailableServices();
+            notifyWithResult(null);
+        } else {
+            notifyWithFail(status, "onServicesDiscovered fail");
+        }
+    }
+
+    @Override
+    public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        super.onCharacteristicRead(gatt, characteristic, status);
+        if (BluetoothGatt.GATT_SUCCESS == status) {
+            notifyWithResult(characteristic);
+        } else {
+            notifyWithFail(status, "onCharacteristicRead fail");
+        }
+    }
+
+    @Override
+    public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        super.onCharacteristicWrite(gatt, characteristic, status);
+        if (BluetoothGatt.GATT_SUCCESS == status) {
+            notifyWithResult(characteristic);
+        } else {
+            notifyWithFail(status, "onCharacteristicWrite fail");
+        }
+    }
+
+    @Override
+    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+        super.onCharacteristicChanged(gatt, characteristic);
+        if (mNotifyListeners.containsKey(characteristic.getUuid())) {
+            mNotifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
+        }
+    }
+
+    @Override
+    public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+        super.onReadRemoteRssi(gatt, rssi, status);
+        if (BluetoothGatt.GATT_SUCCESS == status) {
+            Log.d(TAG, "onReadRemoteRssi:" + rssi);
+        } else {
+            notifyWithFail(status, "onCharacteristicRead fail");
+        }
+    }
+
+    /**
+     * Checks connection state.
+     *
+     * @throws IllegalStateException if device is not connected
+     */
+    private void checkConnectionState() throws IllegalStateException {
+        if (mBluetoothGatt == null) {
+            Log.e(TAG, "Connect device first");
+            throw new IllegalStateException("Device is not connected");
+        }
+    }
+
+    /**
+     * Checks available services, characteristics and descriptors
+     */
+    private void checkAvailableServices() {
         for (BluetoothGattService service : mBluetoothGatt.getServices()) {
             Log.d(TAG, "onServicesDiscovered:" + service.getUuid());
 
@@ -201,82 +271,26 @@ final class BluetoothIO extends BluetoothGattCallback {
         }
     }
 
-    @Override
-    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-        super.onConnectionStateChange(gatt, status, newState);
-
-        if (newState == BluetoothProfile.STATE_CONNECTED) {
-            gatt.discoverServices();
-        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-            gatt.close();
-            if (mDisconnectedListener != null)
-                mDisconnectedListener.onNotify(null);
+    /**
+     * Notifies with success result
+     *
+     * @param data Result data
+     */
+    private void notifyWithResult(BluetoothGattCharacteristic data) {
+        if (mBluetoothListener != null && data != null) {
+            mBluetoothListener.onSuccess(data);
         }
     }
 
-    @Override
-    public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-        super.onCharacteristicRead(gatt, characteristic, status);
-        if (BluetoothGatt.GATT_SUCCESS == status) {
-            onSuccess(characteristic);
-        } else {
-            onFail(status, "onCharacteristicRead fail");
-        }
-    }
-
-    @Override
-    public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-        super.onCharacteristicWrite(gatt, characteristic, status);
-        if (BluetoothGatt.GATT_SUCCESS == status) {
-            onSuccess(characteristic);
-        } else {
-            onFail(status, "onCharacteristicWrite fail");
-        }
-    }
-
-    @Override
-    public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
-        super.onReadRemoteRssi(gatt, rssi, status);
-        if (BluetoothGatt.GATT_SUCCESS == status) {
-            onSuccess(rssi);
-        } else {
-            onFail(status, "onCharacteristicRead fail");
-        }
-    }
-
-    @Override
-    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-        super.onServicesDiscovered(gatt, status);
-        if (status == BluetoothGatt.GATT_SUCCESS) {
-            mBluetoothGatt = gatt;
-            onSuccess(null);
-        } else {
-            onFail(status, "onServicesDiscovered fail");
-        }
-    }
-
-    @Override
-    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        super.onCharacteristicChanged(gatt, characteristic);
-        if (mNotifyListeners.containsKey(characteristic.getUuid())) {
-            mNotifyListeners.get(characteristic.getUuid()).onNotify(characteristic.getValue());
-        }
-    }
-
-
-    private void onSuccess(Object data) {
-        if (mCallback != null) {
-            ActionCallback callback = mCallback;
-            mCallback = null;
-            callback.onSuccess(data);
-        }
-    }
-
-    private void onFail(int errorCode, String msg) {
-        if (mCallback != null) {
-            ActionCallback callback = mCallback;
-            mCallback = null;
-            callback.onFail(errorCode, msg);
+    /**
+     * Notifies with failed result
+     *
+     * @param errorCode Error code
+     * @param msg       Message
+     */
+    private void notifyWithFail(int errorCode, String msg) {
+        if (mBluetoothListener != null) {
+            mBluetoothListener.onFail(errorCode, msg);
         }
     }
 

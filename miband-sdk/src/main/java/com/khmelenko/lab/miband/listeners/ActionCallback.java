@@ -1,5 +1,7 @@
 package com.khmelenko.lab.miband.listeners;
 
+import android.bluetooth.BluetoothGattCharacteristic;
+
 /**
  * Action callback
  *
@@ -8,7 +10,7 @@ package com.khmelenko.lab.miband.listeners;
 public interface ActionCallback {
 
     /**
-     * Called on successful complete
+     * Called on successful completion
      *
      * @param data Fetched data
      */
