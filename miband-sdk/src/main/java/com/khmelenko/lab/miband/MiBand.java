@@ -3,11 +3,10 @@ package com.khmelenko.lab.miband;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.khmelenko.lab.miband.listeners.ActionCallback;
@@ -23,57 +22,93 @@ import com.khmelenko.lab.miband.model.VibrationMode;
 
 import java.util.Arrays;
 
-public final class MiBand {
+import rx.Observable;
+import rx.Subscriber;
+import rx.subjects.PublishSubject;
+
+/**
+ * Main class for interacting with MiBand
+ *
+ * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
+ */
+public final class MiBand implements BluetoothListener {
 
     private static final String TAG = "miband-android";
 
     private final Context mContext;
     private final BluetoothIO mBluetoothIO;
 
+    private PublishSubject<Boolean> mConnectionSubject;
+    private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
+
     public MiBand(Context context) {
         mContext = context;
-        mBluetoothIO = new BluetoothIO();
-    }
+        mBluetoothIO = new BluetoothIO(this);
 
-    public static void startScan(ScanCallback callback) {
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter == null) {
-            Log.e(TAG, "BluetoothAdapter is null");
-            return;
-        }
-        BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
-        if (scanner == null) {
-            Log.e(TAG, "BluetoothLeScanner is null");
-            return;
-        }
-        scanner.startScan(callback);
-    }
-
-    public static void stopScan(ScanCallback callback) {
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter == null) {
-            Log.e(TAG, "BluetoothAdapter is null");
-            return;
-        }
-        BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
-        if (scanner == null) {
-            Log.e(TAG, "BluetoothLeScanner is null");
-            return;
-        }
-        scanner.stopScan(callback);
+        mConnectionSubject = PublishSubject.create();
+        mReadWriteSubject = PublishSubject.create();
     }
 
     /**
-     * 连接指定的手环
+     * Starts scanning for devices
      *
-     * @param callback
+     * @param callback Callback
      */
-    public void connect(BluetoothDevice device, final ActionCallback callback) {
-        mBluetoothIO.connect(mContext, device, callback);
+    public static void startScan(@NonNull ScanCallback callback) {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter != null) {
+            BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+            if (scanner != null) {
+                scanner.startScan(callback);
+            } else {
+                Log.e(TAG, "BluetoothLeScanner is null");
+            }
+        } else {
+            Log.e(TAG, "BluetoothAdapter is null");
+        }
     }
 
-    public void setDisconnectedListener(NotifyListener disconnectedListener) {
-        mBluetoothIO.setDisconnectedListener(disconnectedListener);
+    /**
+     * Stops scanning for devices
+     *
+     * @param callback Callback
+     */
+    public static void stopScan(ScanCallback callback) {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter != null) {
+            BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+            if (scanner != null) {
+                scanner.stopScan(callback);
+            } else {
+                Log.e(TAG, "BluetoothLeScanner is null");
+            }
+        } else {
+            Log.e(TAG, "BluetoothAdapter is null");
+        }
+    }
+
+    /**
+     * Starts connection process to the device
+     *
+     * @param device Device to connect
+     */
+    public Observable<Boolean> connect(final BluetoothDevice device) {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                mConnectionSubject.subscribe(subscriber);
+                mBluetoothIO.connect(mContext, device);
+            }
+        });
+    }
+
+    /**
+     * Gets connected device
+     *
+     * @return Connected device or null, if device is not connected
+     */
+    public BluetoothDevice getDevice() {
+        return mBluetoothIO.getConnectedDevice();
     }
 
     /**
@@ -100,11 +135,7 @@ public final class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
-    }
-
-    public BluetoothDevice getDevice() {
-        return mBluetoothIO.getConnectedDevice();
+        // TODO mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
     }
 
     /**
@@ -114,7 +145,7 @@ public final class MiBand {
      * @return data : int, rssi值
      */
     public void readRssi(ActionCallback callback) {
-        mBluetoothIO.readRssi(callback);
+        mBluetoothIO.readRssi();
     }
 
     /**
@@ -142,7 +173,7 @@ public final class MiBand {
                 callback.onFail(errorCode, msg);
             }
         };
-        mBluetoothIO.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY, ioCallback);
+        mBluetoothIO.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY);
     }
 
     /**
@@ -163,14 +194,14 @@ public final class MiBand {
             default:
                 return;
         }
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocal, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocal);
     }
 
     /**
      * 停止以模式Protocol.VIBRATION_10_TIMES_WITH_LED 开始的震动
      */
     public void stopVibration() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, Protocol.STOP_VIBRATION, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, Protocol.STOP_VIBRATION);
     }
 
     public void setNormalNotifyListener(NotifyListener listener) {
@@ -197,14 +228,14 @@ public final class MiBand {
      * 开启重力感应器数据通知
      */
     public void enableSensorDataNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY);
     }
 
     /**
      * 关闭重力感应器数据通知
      */
     public void disableSensorDataNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY);
     }
 
     /**
@@ -231,14 +262,14 @@ public final class MiBand {
      * 开启实时步数通知
      */
     public void enableRealtimeStepsNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY);
     }
 
     /**
      * 关闭实时步数通知
      */
     public void disableRealtimeStepsNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY);
     }
 
     /**
@@ -262,7 +293,7 @@ public final class MiBand {
             default:
                 return;
         }
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocal, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocal);
     }
 
     /**
@@ -273,9 +304,8 @@ public final class MiBand {
     public void setUserInfo(UserInfo userInfo) {
         BluetoothDevice device = mBluetoothIO.getConnectedDevice();
         byte[] data = userInfo.getBytes(device.getAddress());
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data);
     }
-
 
 
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
@@ -293,7 +323,39 @@ public final class MiBand {
 
     public void startHeartRateScan() {
 
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN, null);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN);
     }
 
+    /**
+     * Notify for connection results
+     *
+     * @param result True, if connected. False if disconnected
+     */
+    private void notifyConnectionResult(boolean result) {
+        mConnectionSubject.onNext(true);
+        mConnectionSubject.onCompleted();
+
+        // create new connection subject
+        mConnectionSubject = PublishSubject.create();
+    }
+
+    @Override
+    public void onConnectionEstablished() {
+        notifyConnectionResult(true);
+    }
+
+    @Override
+    public void onDisconnected() {
+        notifyConnectionResult(false);
+    }
+
+    @Override
+    public void onResult(BluetoothGattCharacteristic data) {
+        // TODO
+    }
+
+    @Override
+    public void onFail(int errorCode, String msg) {
+        // TODO
+    }
 }

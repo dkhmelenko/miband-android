@@ -29,6 +29,10 @@ import com.khmelenko.lab.miband.model.VibrationMode;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Observable;
+
+import rx.Subscriber;
+import rx.Subscription;
 
 public class MainActivity extends Activity {
     static final String[] BUTTONS = new String[]{
@@ -91,25 +95,24 @@ public class MainActivity extends Activity {
                 int menuIndex = 0;
                 if (position == menuIndex++) {
                     final ProgressDialog pd = ProgressDialog.show(MainActivity.this, "", "Connecting...");
-                    miband.connect(device, new ActionCallback() {
-
+                    rx.Observable<Boolean> observable = miband.connect(device);
+                    Subscription subscription = observable.subscribe(new Subscriber<Boolean>() {
                         @Override
-                        public void onSuccess(Object data) {
-                            pd.dismiss();
-                            Log.d(TAG, "Connected successfully");
+                        public void onCompleted() {
 
-                            miband.setDisconnectedListener(new NotifyListener() {
-                                @Override
-                                public void onNotify(byte[] data) {
-                                    Log.d(TAG, "Disconnected!");
-                                }
-                            });
+                            Log.d(TAG, "Connect onCompleted");
                         }
 
                         @Override
-                        public void onFail(int errorCode, String msg) {
+                        public void onError(Throwable e) {
                             pd.dismiss();
-                            Log.d(TAG, "connect fail, code:" + errorCode + ",mgs:" + msg);
+                            e.printStackTrace();
+                        }
+
+                        @Override
+                        public void onNext(Boolean result) {
+                            pd.dismiss();
+                            Log.d(TAG, "Connect onNext: " + String.valueOf(result));
                         }
                     });
                 } else if (position == menuIndex++) {
