@@ -33,6 +33,7 @@ import java.util.Observable;
 
 import rx.Subscriber;
 import rx.Subscription;
+import rx.functions.Action1;
 
 public class MainActivity extends Activity {
     static final String[] BUTTONS = new String[]{
@@ -118,29 +119,33 @@ public class MainActivity extends Activity {
                 } else if (position == menuIndex++) {
                     // TODO miband.showServicesAndCharacteristics();
                 } else if (position == menuIndex++) {
-                    miband.readRssi(new ActionCallback() {
-
+                    rx.Observable<Integer> observable = miband.readRssi();
+                    observable.subscribe(new Subscriber<Integer>() {
                         @Override
-                        public void onSuccess(Object data) {
-                            Log.d(TAG, "rssi:" + (int) data);
+                        public void onCompleted() {
+                            Log.d(TAG, "Rssi onCompleted");
                         }
 
                         @Override
-                        public void onFail(int errorCode, String msg) {
+                        public void onError(Throwable e) {
                             Log.d(TAG, "readRssi fail");
+                        }
+
+                        @Override
+                        public void onNext(Integer rssi) {
+                            Log.d(TAG, "rssi:" + String.valueOf(rssi));
                         }
                     });
                 } else if (position == menuIndex++) {
-                    miband.getBatteryInfo(new ActionCallback() {
-
+                    rx.Observable<BatteryInfo> observable = miband.getBatteryInfo();
+                    observable.subscribe(new Action1<BatteryInfo>() {
                         @Override
-                        public void onSuccess(Object data) {
-                            BatteryInfo info = (BatteryInfo) data;
-                            Log.d(TAG, info.toString());
+                        public void call(BatteryInfo batteryInfo) {
+                            Log.d(TAG, batteryInfo.toString());
                         }
-
+                    }, new Action1<Throwable>() {
                         @Override
-                        public void onFail(int errorCode, String msg) {
+                        public void call(Throwable throwable) {
                             Log.d(TAG, "getBatteryInfo fail");
                         }
                     });
