@@ -22,6 +22,7 @@ import java.util.UUID;
  * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
  */
 final class BluetoothIO extends BluetoothGattCallback {
+
     private static final String TAG = "BluetoothIO";
 
     public static final int STATUS_ERROR = -1;
@@ -198,7 +199,7 @@ final class BluetoothIO extends BluetoothGattCallback {
         if (status == BluetoothGatt.GATT_SUCCESS) {
             mBluetoothGatt = gatt;
             checkAvailableServices();
-            if(mBluetoothListener != null) {
+            if (mBluetoothListener != null) {
                 mBluetoothListener.onConnectionEstablished();
             }
         } else {
@@ -239,6 +240,7 @@ final class BluetoothIO extends BluetoothGattCallback {
         super.onReadRemoteRssi(gatt, rssi, status);
         if (BluetoothGatt.GATT_SUCCESS == status) {
             Log.d(TAG, "onReadRemoteRssi:" + rssi);
+            notifyWithResult(rssi);
         } else {
             notifyWithFail(status, "onCharacteristicRead fail");
         }
@@ -281,6 +283,17 @@ final class BluetoothIO extends BluetoothGattCallback {
     private void notifyWithResult(BluetoothGattCharacteristic data) {
         if (mBluetoothListener != null && data != null) {
             mBluetoothListener.onResult(data);
+        }
+    }
+
+    /**
+     * Notifies with success result
+     *
+     * @param data     Result data
+     */
+    private void notifyWithResult(int data) {
+        if (mBluetoothListener != null) {
+            mBluetoothListener.onResultRssi(data);
         }
     }
 

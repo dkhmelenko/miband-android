@@ -39,6 +39,7 @@ public final class MiBand implements BluetoothListener {
     private final BluetoothIO mBluetoothIO;
 
     private PublishSubject<Boolean> mConnectionSubject;
+    private PublishSubject<Integer> mRssiSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -46,6 +47,7 @@ public final class MiBand implements BluetoothListener {
         mBluetoothIO = new BluetoothIO(this);
 
         mConnectionSubject = PublishSubject.create();
+        mRssiSubject = PublishSubject.create();
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -55,6 +57,7 @@ public final class MiBand implements BluetoothListener {
      * @param callback Callback
      */
     public static void startScan(@NonNull ScanCallback callback) {
+        // TODO Change to Rx
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter != null) {
             BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
@@ -74,6 +77,7 @@ public final class MiBand implements BluetoothListener {
      * @param callback Callback
      */
     public static void stopScan(ScanCallback callback) {
+        // TODO Change to Rx
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter != null) {
             BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
@@ -139,13 +143,17 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 读取和连接设备的信号强度RSSI值
-     *
-     * @param callback
-     * @return data : int, rssi值
+     * Reads Received Signal Strength Indication (RSSI)
      */
-    public void readRssi(ActionCallback callback) {
-        mBluetoothIO.readRssi();
+    public Observable<Integer> readRssi() {
+        return Observable.create(new Observable.OnSubscribe<Integer>() {
+            @Override
+            public void call(Subscriber<? super Integer> subscriber) {
+                mRssiSubject.subscribe(subscriber);
+                mBluetoothIO.readRssi();
+            }
+        });
+
     }
 
     /**
@@ -352,6 +360,14 @@ public final class MiBand implements BluetoothListener {
     @Override
     public void onResult(BluetoothGattCharacteristic data) {
         // TODO
+    }
+
+    @Override
+    public void onResultRssi(int rssi) {
+        mRssiSubject.onNext(rssi);
+        mRssiSubject.onCompleted();
+
+        mRssiSubject = PublishSubject.create();
     }
 
     @Override

@@ -27,6 +27,13 @@ public interface BluetoothListener {
     void onResult(BluetoothGattCharacteristic data);
 
     /**
+     * Called on getting successful result of RSSI strength
+     *
+     * @param rssi RSSI strength
+     */
+    void onResultRssi(int rssi);
+
+    /**
      * Called on fail
      *
      * @param errorCode Error code
