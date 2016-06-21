@@ -42,6 +42,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Boolean> mConnectionSubject;
     private PublishSubject<Integer> mRssiSubject;
     private PublishSubject<BatteryInfo> mBatteryInfoSubject;
+    private PublishSubject<Void> mPairSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -51,6 +52,7 @@ public final class MiBand implements BluetoothListener {
         mConnectionSubject = PublishSubject.create();
         mRssiSubject = PublishSubject.create();
         mBatteryInfoSubject = PublishSubject.create();
+        mPairSubject = PublishSubject.create();
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -119,30 +121,16 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 和手环配对, 实际用途未知, 不配对也可以做其他的操作
-     *
-     * @return data = null
+     * Executes device pairing
      */
-    public void pair(final ActionCallback callback) {
-        ActionCallback ioCallback = new ActionCallback() {
-
+    public Observable<Void> pair() {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
             @Override
-            public void onSuccess(Object data) {
-                BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) data;
-                Log.d(TAG, "pair result " + Arrays.toString(characteristic.getValue()));
-                if (characteristic.getValue().length == 1 && characteristic.getValue()[0] == 2) {
-                    callback.onSuccess(null);
-                } else {
-                    callback.onFail(-1, "respone values no succ!");
-                }
+            public void call(Subscriber<? super Void> subscriber) {
+                mPairSubject.subscribe(subscriber);
+                // TODO mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
             }
-
-            @Override
-            public void onFail(int errorCode, String msg) {
-                callback.onFail(errorCode, msg);
-            }
-        };
-        // TODO mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
+        });
     }
 
     /**
@@ -177,21 +165,21 @@ public final class MiBand implements BluetoothListener {
      * 让手环震动
      */
     public void startVibration(VibrationMode mode) {
-        byte[] protocal;
+        byte[] protocol;
         switch (mode) {
             case VIBRATION_WITH_LED:
-                protocal = Protocol.VIBRATION_WITH_LED;
+                protocol = Protocol.VIBRATION_WITH_LED;
                 break;
             case VIBRATION_10_TIMES_WITH_LED:
-                protocal = Protocol.VIBRATION_10_TIMES_WITH_LED;
+                protocol = Protocol.VIBRATION_10_TIMES_WITH_LED;
                 break;
             case VIBRATION_WITHOUT_LED:
-                protocal = Protocol.VIBRATION_WITHOUT_LED;
+                protocol = Protocol.VIBRATION_WITHOUT_LED;
                 break;
             default:
                 return;
         }
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocal);
+        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol);
     }
 
     /**
@@ -350,8 +338,10 @@ public final class MiBand implements BluetoothListener {
     public void onResult(BluetoothGattCharacteristic data) {
         UUID serviceId = data.getService().getUuid();
         UUID characteristicId = data.getUuid();
-        if(serviceId == Profile.UUID_SERVICE_MILI) {
-            if(characteristicId == Profile.UUID_CHAR_BATTERY) {
+        if(serviceId.equals(Profile.UUID_SERVICE_MILI)) {
+
+            // Battery info
+            if(characteristicId.equals(Profile.UUID_CHAR_BATTERY)) {
                 Log.d(TAG, "getBatteryInfo result " + Arrays.toString(data.getValue()));
                 if (data.getValue().length == 10) {
                     BatteryInfo info = BatteryInfo.fromByteData(data.getValue());
@@ -362,6 +352,18 @@ public final class MiBand implements BluetoothListener {
                     mBatteryInfoSubject.onError(new Exception("Wrong data format for battery info"));
                 }
                 mBatteryInfoSubject = PublishSubject.create();
+            }
+
+            // Pair
+            if(characteristicId.equals(Profile.UUID_CHAR_PAIR)) {
+                Log.d(TAG, "Pair result " + Arrays.toString(data.getValue()));
+                if (data.getValue().length == 1 && data.getValue()[0] == 2) {
+                    mPairSubject.onNext(null);
+                    mPairSubject.onCompleted();
+                } else {
+                    mPairSubject.onError(new Exception("Pairing failed"));
+                }
+                mPairSubject = PublishSubject.create();
             }
         }
     }

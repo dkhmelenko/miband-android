@@ -223,16 +223,17 @@ public class MainActivity extends Activity {
                 } else if (position == menuIndex++) {
                     miband.disableSensorDataNotify();
                 } else if (position == menuIndex++) {
-                    miband.pair(new ActionCallback() {
-
+                    rx.Observable<Void> observable = miband.pair();
+                    observable.subscribe(new Action1<Void>() {
                         @Override
-                        public void onSuccess(Object data) {
-                            Log.d(TAG, "pair succ");
+                        public void call(Void aVoid) {
+                            Log.d(TAG, "Pairing successful");
                         }
-
+                    }, new Action1<Throwable>() {
                         @Override
-                        public void onFail(int errorCode, String msg) {
-                            Log.d(TAG, "pair fail");
+                        public void call(Throwable throwable) {
+                            Log.d(TAG, "Pairing failed");
+                            throwable.printStackTrace();
                         }
                     });
                 }
