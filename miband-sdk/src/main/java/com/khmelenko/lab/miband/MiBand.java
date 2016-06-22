@@ -43,6 +43,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Integer> mRssiSubject;
     private PublishSubject<BatteryInfo> mBatteryInfoSubject;
     private PublishSubject<Void> mPairSubject;
+    private PublishSubject<Void> mStartVibrationSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -53,6 +54,7 @@ public final class MiBand implements BluetoothListener {
         mRssiSubject = PublishSubject.create();
         mBatteryInfoSubject = PublishSubject.create();
         mPairSubject = PublishSubject.create();
+        mStartVibrationSubject = PublishSubject.create();
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -162,24 +164,30 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 让手环震动
+     * Requests starting vibration
      */
-    public void startVibration(VibrationMode mode) {
-        byte[] protocol;
-        switch (mode) {
-            case VIBRATION_WITH_LED:
-                protocol = Protocol.VIBRATION_WITH_LED;
-                break;
-            case VIBRATION_10_TIMES_WITH_LED:
-                protocol = Protocol.VIBRATION_10_TIMES_WITH_LED;
-                break;
-            case VIBRATION_WITHOUT_LED:
-                protocol = Protocol.VIBRATION_WITHOUT_LED;
-                break;
-            default:
-                return;
-        }
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol);
+    public Observable<Void> startVibration(final VibrationMode mode) {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                byte[] protocol;
+                switch (mode) {
+                    case VIBRATION_WITH_LED:
+                        protocol = Protocol.VIBRATION_WITH_LED;
+                        break;
+                    case VIBRATION_10_TIMES_WITH_LED:
+                        protocol = Protocol.VIBRATION_10_TIMES_WITH_LED;
+                        break;
+                    case VIBRATION_WITHOUT_LED:
+                        protocol = Protocol.VIBRATION_WITHOUT_LED;
+                        break;
+                    default:
+                        return;
+                }
+                mStartVibrationSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol);
+            }
+        });
     }
 
     /**
@@ -365,6 +373,15 @@ public final class MiBand implements BluetoothListener {
                 }
                 mPairSubject = PublishSubject.create();
             }
+        }
+
+        // vibration service
+        if(serviceId.equals(Profile.UUID_SERVICE_VIBRATION)) {
+            if(characteristicId.equals(Profile.UUID_CHAR_VIBRATION)) {
+                mStartVibrationSubject.onNext(null);
+                mStartVibrationSubject.onCompleted();
+            }
+            mStartVibrationSubject = PublishSubject.create();
         }
     }
 
