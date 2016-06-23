@@ -164,13 +164,33 @@ public class MainActivity extends Activity {
                 } else if (position == menuIndex++) {
                     miband.startHeartRateScan();
                 } else if (position == menuIndex++) {
-                    miband.startVibration(VibrationMode.VIBRATION_WITH_LED);
+                    miband.startVibration(VibrationMode.VIBRATION_WITH_LED).subscribe(new Action1<Void>() {
+                        @Override
+                        public void call(Void aVoid) {
+                            Log.d(TAG, "Vibration started");
+                        }
+                    });
                 } else if (position == menuIndex++) {
-                    miband.startVibration(VibrationMode.VIBRATION_WITHOUT_LED);
+                    miband.startVibration(VibrationMode.VIBRATION_WITHOUT_LED).subscribe(new Action1<Void>() {
+                        @Override
+                        public void call(Void aVoid) {
+                            Log.d(TAG, "Vibration started");
+                        }
+                    });;
                 } else if (position == menuIndex++) {
-                    miband.startVibration(VibrationMode.VIBRATION_10_TIMES_WITH_LED);
+                    miband.startVibration(VibrationMode.VIBRATION_10_TIMES_WITH_LED).subscribe(new Action1<Void>() {
+                        @Override
+                        public void call(Void aVoid) {
+                            Log.d(TAG, "Vibration started");
+                        }
+                    });;
                 } else if (position == menuIndex++) {
-                    miband.stopVibration();
+                    miband.stopVibration().subscribe(new Action1<Void>() {
+                        @Override
+                        public void call(Void aVoid) {
+                            Log.d(TAG, "Vibration stopped");
+                        }
+                    });;
                 } else if (position == menuIndex++) {
                     miband.setNormalNotifyListener(new NotifyListener() {
 
