@@ -9,7 +9,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.khmelenko.lab.miband.listeners.ActionCallback;
 import com.khmelenko.lab.miband.listeners.HeartRateNotifyListener;
 import com.khmelenko.lab.miband.listeners.NotifyListener;
 import com.khmelenko.lab.miband.listeners.RealtimeStepsNotifyListener;
@@ -26,6 +25,7 @@ import java.util.UUID;
 import rx.Observable;
 import rx.Subscriber;
 import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 /**
  * Main class for interacting with MiBand
@@ -44,6 +44,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<BatteryInfo> mBatteryInfoSubject;
     private PublishSubject<Void> mPairSubject;
     private PublishSubject<Void> mStartVibrationSubject;
+    private PublishSubject<Void> mStopVibrationSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -55,6 +56,7 @@ public final class MiBand implements BluetoothListener {
         mBatteryInfoSubject = PublishSubject.create();
         mPairSubject = PublishSubject.create();
         mStartVibrationSubject = PublishSubject.create();
+        mStopVibrationSubject = PublishSubject.create();
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -191,10 +193,16 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 停止以模式Protocol.VIBRATION_10_TIMES_WITH_LED 开始的震动
+     * Requests stopping vibration
      */
-    public void stopVibration() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, Protocol.STOP_VIBRATION);
+    public Observable<Void> stopVibration() {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION,
+                        Protocol.STOP_VIBRATION);
+            }
+        });
     }
 
     public void setNormalNotifyListener(NotifyListener listener) {
@@ -346,10 +354,10 @@ public final class MiBand implements BluetoothListener {
     public void onResult(BluetoothGattCharacteristic data) {
         UUID serviceId = data.getService().getUuid();
         UUID characteristicId = data.getUuid();
-        if(serviceId.equals(Profile.UUID_SERVICE_MILI)) {
+        if (serviceId.equals(Profile.UUID_SERVICE_MILI)) {
 
             // Battery info
-            if(characteristicId.equals(Profile.UUID_CHAR_BATTERY)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_BATTERY)) {
                 Log.d(TAG, "getBatteryInfo result " + Arrays.toString(data.getValue()));
                 if (data.getValue().length == 10) {
                     BatteryInfo info = BatteryInfo.fromByteData(data.getValue());
@@ -363,7 +371,7 @@ public final class MiBand implements BluetoothListener {
             }
 
             // Pair
-            if(characteristicId.equals(Profile.UUID_CHAR_PAIR)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_PAIR)) {
                 Log.d(TAG, "Pair result " + Arrays.toString(data.getValue()));
                 if (data.getValue().length == 1 && data.getValue()[0] == 2) {
                     mPairSubject.onNext(null);
@@ -376,12 +384,22 @@ public final class MiBand implements BluetoothListener {
         }
 
         // vibration service
-        if(serviceId.equals(Profile.UUID_SERVICE_VIBRATION)) {
-            if(characteristicId.equals(Profile.UUID_CHAR_VIBRATION)) {
-                mStartVibrationSubject.onNext(null);
-                mStartVibrationSubject.onCompleted();
+        if (serviceId.equals(Profile.UUID_SERVICE_VIBRATION)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_VIBRATION)) {
+                byte[] changedValue = data.getValue();
+                if(changedValue == Protocol.STOP_VIBRATION) {
+                    mStopVibrationSubject.onNext(null);
+                    mStopVibrationSubject.onCompleted();
+
+                    mStopVibrationSubject = PublishSubject.create();
+                } else {
+                    mStartVibrationSubject.onNext(null);
+                    mStartVibrationSubject.onCompleted();
+
+                    mStartVibrationSubject = PublishSubject.create();
+
+                }
             }
-            mStartVibrationSubject = PublishSubject.create();
         }
     }
 
