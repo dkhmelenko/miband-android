@@ -202,6 +202,7 @@ public final class MiBand implements BluetoothListener {
         return Observable.create(new Observable.OnSubscribe<Void>() {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
+                mStopVibrationSubject.subscribe(subscriber);
                 mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION,
                         Protocol.STOP_VIBRATION);
             }
