@@ -25,7 +25,6 @@ import java.util.UUID;
 import rx.Observable;
 import rx.Subscriber;
 import rx.subjects.PublishSubject;
-import rx.subjects.Subject;
 
 /**
  * Main class for interacting with MiBand
@@ -45,6 +44,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Void> mPairSubject;
     private PublishSubject<Void> mStartVibrationSubject;
     private PublishSubject<Void> mStopVibrationSubject;
+    private PublishSubject<Boolean> mSensorNotificationSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -57,6 +57,7 @@ public final class MiBand implements BluetoothListener {
         mPairSubject = PublishSubject.create();
         mStartVibrationSubject = PublishSubject.create();
         mStopVibrationSubject = PublishSubject.create();
+        mSensorNotificationSubject = PublishSubject.create();
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -226,17 +227,31 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 开启重力感应器数据通知
+     * Enables sensor notifications
      */
-    public void enableSensorDataNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_SENSOR_DATA_NOTIFY);
+    public Observable<Boolean> enableSensorDataNotify() {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                mSensorNotificationSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                        Protocol.ENABLE_SENSOR_DATA_NOTIFY);
+            }
+        });
     }
 
     /**
-     * 关闭重力感应器数据通知
+     * Disables sensor notifications
      */
-    public void disableSensorDataNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_SENSOR_DATA_NOTIFY);
+    public Observable<Boolean> disableSensorDataNotify() {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                mSensorNotificationSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                        Protocol.DISABLE_SENSOR_DATA_NOTIFY);
+            }
+        });
     }
 
     /**
@@ -381,13 +396,25 @@ public final class MiBand implements BluetoothListener {
                 }
                 mPairSubject = PublishSubject.create();
             }
+
+            if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+                byte[] changedValue = data.getValue();
+                if (changedValue == Protocol.ENABLE_SENSOR_DATA_NOTIFY) {
+                    mSensorNotificationSubject.onNext(true);
+                } else {
+                    mSensorNotificationSubject.onNext(false);
+                }
+                mSensorNotificationSubject.onCompleted();
+                mSensorNotificationSubject = PublishSubject.create();
+            }
         }
 
         // vibration service
         if (serviceId.equals(Profile.UUID_SERVICE_VIBRATION)) {
             if (characteristicId.equals(Profile.UUID_CHAR_VIBRATION)) {
                 byte[] changedValue = data.getValue();
-                if(changedValue == Protocol.STOP_VIBRATION) {
+                // TODO Improve arrays comparision
+                if (changedValue == Protocol.STOP_VIBRATION) {
                     mStopVibrationSubject.onNext(null);
                     mStopVibrationSubject.onCompleted();
 
