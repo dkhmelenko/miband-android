@@ -45,6 +45,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Void> mStartVibrationSubject;
     private PublishSubject<Void> mStopVibrationSubject;
     private PublishSubject<Boolean> mSensorNotificationSubject;
+    private PublishSubject<Boolean> mRealtimeNotificationSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -58,6 +59,7 @@ public final class MiBand implements BluetoothListener {
         mStartVibrationSubject = PublishSubject.create();
         mStopVibrationSubject = PublishSubject.create();
         mSensorNotificationSubject = PublishSubject.create();
+        mRealtimeNotificationSubject = PublishSubject.create();
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -206,26 +208,6 @@ public final class MiBand implements BluetoothListener {
         });
     }
 
-    public void setNormalNotifyListener(NotifyListener listener) {
-        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_NOTIFICATION, listener);
-    }
-
-    /**
-     * 重力感应器数据通知监听, 设置完之后需要另外使用 {@link MiBand#enableRealtimeStepsNotify} 开启 和
-     * {@link MiBand##disableRealtimeStepsNotify} 关闭通知
-     *
-     * @param listener
-     */
-    public void setSensorDataNotifyListener(final NotifyListener listener) {
-        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, new NotifyListener() {
-
-            @Override
-            public void onNotify(byte[] data) {
-                listener.onNotify(data);
-            }
-        });
-    }
-
     /**
      * Enables sensor notifications
      */
@@ -255,6 +237,54 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
+     * Enables realtime steps notification
+     */
+    public Observable<Boolean> enableRealtimeStepsNotify() {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                mRealtimeNotificationSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                        Protocol.ENABLE_REALTIME_STEPS_NOTIFY);
+            }
+        });
+    }
+
+    /**
+     * Disables realtime steps notification
+     */
+    public Observable<Boolean> disableRealtimeStepsNotify() {
+        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                mRealtimeNotificationSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                        Protocol.DISABLE_REALTIME_STEPS_NOTIFY);
+            }
+        });
+    }
+
+    public void setNormalNotifyListener(NotifyListener listener) {
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_NOTIFICATION, listener);
+    }
+
+    /**
+     * 重力感应器数据通知监听, 设置完之后需要另外使用 {@link MiBand#enableRealtimeStepsNotify} 开启 和
+     * {@link MiBand##disableRealtimeStepsNotify} 关闭通知
+     *
+     * @param listener
+     */
+    public void setSensorDataNotifyListener(final NotifyListener listener) {
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, new NotifyListener() {
+
+            @Override
+            public void onNotify(byte[] data) {
+                listener.onNotify(data);
+            }
+        });
+    }
+
+    /**
      * 实时步数通知监听器, 设置完之后需要另外使用 {@link MiBand#enableRealtimeStepsNotify} 开启 和
      * {@link MiBand##disableRealtimeStepsNotify} 关闭通知
      *
@@ -272,20 +302,6 @@ public final class MiBand implements BluetoothListener {
                 }
             }
         });
-    }
-
-    /**
-     * 开启实时步数通知
-     */
-    public void enableRealtimeStepsNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.ENABLE_REALTIME_STEPS_NOTIFY);
-    }
-
-    /**
-     * 关闭实时步数通知
-     */
-    public void disableRealtimeStepsNotify() {
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, Protocol.DISABLE_REALTIME_STEPS_NOTIFY);
     }
 
     /**
@@ -397,6 +413,7 @@ public final class MiBand implements BluetoothListener {
                 mPairSubject = PublishSubject.create();
             }
 
+            // sensor notify
             if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
                 if (changedValue == Protocol.ENABLE_SENSOR_DATA_NOTIFY) {
@@ -406,6 +423,18 @@ public final class MiBand implements BluetoothListener {
                 }
                 mSensorNotificationSubject.onCompleted();
                 mSensorNotificationSubject = PublishSubject.create();
+            }
+
+            // realtime notify
+            if(characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+                byte[] changedValue = data.getValue();
+                if (changedValue == Protocol.ENABLE_REALTIME_STEPS_NOTIFY) {
+                    mRealtimeNotificationSubject.onNext(true);
+                } else {
+                    mRealtimeNotificationSubject.onNext(false);
+                }
+                mRealtimeNotificationSubject.onCompleted();
+                mRealtimeNotificationSubject = PublishSubject.create();
             }
         }
 
