@@ -46,6 +46,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Void> mStopVibrationSubject;
     private PublishSubject<Boolean> mSensorNotificationSubject;
     private PublishSubject<Boolean> mRealtimeNotificationSubject;
+    private PublishSubject<Void> mLedColorSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -60,6 +61,8 @@ public final class MiBand implements BluetoothListener {
         mStopVibrationSubject = PublishSubject.create();
         mSensorNotificationSubject = PublishSubject.create();
         mRealtimeNotificationSubject = PublishSubject.create();
+        mLedColorSubject = PublishSubject.create();
+
         mReadWriteSubject = PublishSubject.create();
     }
 
@@ -306,27 +309,34 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 设置led灯颜色
+     * Sets LED color
      */
-    public void setLedColor(LedColor color) {
-        byte[] protocal;
-        switch (color) {
-            case RED:
-                protocal = Protocol.SET_COLOR_RED;
-                break;
-            case BLUE:
-                protocal = Protocol.SET_COLOR_BLUE;
-                break;
-            case GREEN:
-                protocal = Protocol.SET_COLOR_GREEN;
-                break;
-            case ORANGE:
-                protocal = Protocol.SET_COLOR_ORANGE;
-                break;
-            default:
-                return;
-        }
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocal);
+    public Observable<Void> setLedColor(final LedColor color) {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                byte[] protocol;
+                switch (color) {
+                    case RED:
+                        protocol = Protocol.SET_COLOR_RED;
+                        break;
+                    case BLUE:
+                        protocol = Protocol.SET_COLOR_BLUE;
+                        break;
+                    case GREEN:
+                        protocol = Protocol.SET_COLOR_GREEN;
+                        break;
+                    case ORANGE:
+                        protocol = Protocol.SET_COLOR_ORANGE;
+                        break;
+                    default:
+                        return;
+                }
+                mLedColorSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocol);
+            }
+        });
+
     }
 
     /**
@@ -436,6 +446,19 @@ public final class MiBand implements BluetoothListener {
                 }
                 mRealtimeNotificationSubject.onCompleted();
                 mRealtimeNotificationSubject = PublishSubject.create();
+            }
+
+            // led color
+            if(characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+                byte[] changedValue = data.getValue();
+                if (changedValue == Protocol.SET_COLOR_RED
+                        || changedValue == Protocol.SET_COLOR_BLUE
+                        || changedValue == Protocol.SET_COLOR_GREEN
+                        || changedValue == Protocol.SET_COLOR_ORANGE) {
+                    mLedColorSubject.onNext(null);
+                }
+                mLedColorSubject.onCompleted();
+                mLedColorSubject = PublishSubject.create();
             }
         }
 
