@@ -48,6 +48,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Boolean> mRealtimeNotificationSubject;
     private PublishSubject<Void> mLedColorSubject;
     private PublishSubject<Void> mUserInfoSubject;
+    private PublishSubject<Void> mHeartRateSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -64,6 +65,7 @@ public final class MiBand implements BluetoothListener {
         mRealtimeNotificationSubject = PublishSubject.create();
         mLedColorSubject = PublishSubject.create();
         mUserInfoSubject = PublishSubject.create();
+        mHeartRateSubject = PublishSubject.create();
 
         mReadWriteSubject = PublishSubject.create();
     }
@@ -361,7 +363,24 @@ public final class MiBand implements BluetoothListener {
         });
     }
 
+    /**
+     * Starts heart rate scanner
+     */
+    public Observable<Void> startHeartRateScan() {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                mHeartRateSubject.subscribe(subscriber);
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN);
+            }
+        });
+    }
 
+    /**
+     * Sets heart rate scanner listener
+     *
+     * @param listener Listener
+     */
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
         mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, new NotifyListener() {
             @Override
@@ -373,11 +392,6 @@ public final class MiBand implements BluetoothListener {
                 }
             }
         });
-    }
-
-    public void startHeartRateScan() {
-
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN);
     }
 
     /**
@@ -497,6 +511,19 @@ public final class MiBand implements BluetoothListener {
 
                     mStartVibrationSubject = PublishSubject.create();
 
+                }
+            }
+        }
+
+        // heart rate
+        if(serviceId.equals(Profile.UUID_SERVICE_HEARTRATE)) {
+            if(characteristicId.equals(Profile.UUID_CHAR_HEARTRATE)) {
+                byte[] changedValue = data.getValue();
+                if(changedValue == Protocol.START_HEART_RATE_SCAN) {
+                    mHeartRateSubject.onNext(null);
+                    mHeartRateSubject.onCompleted();
+
+                    mHeartRateSubject = PublishSubject.create();
                 }
             }
         }
