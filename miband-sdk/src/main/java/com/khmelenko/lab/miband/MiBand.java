@@ -47,6 +47,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Boolean> mSensorNotificationSubject;
     private PublishSubject<Boolean> mRealtimeNotificationSubject;
     private PublishSubject<Void> mLedColorSubject;
+    private PublishSubject<Void> mUserInfoSubject;
     private PublishSubject<BluetoothGattCharacteristic> mReadWriteSubject;
 
     public MiBand(Context context) {
@@ -62,6 +63,7 @@ public final class MiBand implements BluetoothListener {
         mSensorNotificationSubject = PublishSubject.create();
         mRealtimeNotificationSubject = PublishSubject.create();
         mLedColorSubject = PublishSubject.create();
+        mUserInfoSubject = PublishSubject.create();
 
         mReadWriteSubject = PublishSubject.create();
     }
@@ -310,6 +312,8 @@ public final class MiBand implements BluetoothListener {
 
     /**
      * Sets LED color
+     *
+     * @param color Color
      */
     public Observable<Void> setLedColor(final LedColor color) {
         return Observable.create(new Observable.OnSubscribe<Void>() {
@@ -340,14 +344,21 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
-     * 设置用户信息
+     * Sets user info
      *
-     * @param userInfo
+     * @param userInfo User info
      */
-    public void setUserInfo(UserInfo userInfo) {
-        BluetoothDevice device = mBluetoothIO.getConnectedDevice();
-        byte[] data = userInfo.getBytes(device.getAddress());
-        mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data);
+    public Observable<Void> setUserInfo(final UserInfo userInfo) {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                mUserInfoSubject.subscribe(subscriber);
+
+                BluetoothDevice device = mBluetoothIO.getConnectedDevice();
+                byte[] data = userInfo.getBytes(device.getAddress());
+                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data);
+            }
+        });
     }
 
 
@@ -437,7 +448,7 @@ public final class MiBand implements BluetoothListener {
             }
 
             // realtime notify
-            if(characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
                 if (changedValue == Protocol.ENABLE_REALTIME_STEPS_NOTIFY) {
                     mRealtimeNotificationSubject.onNext(true);
@@ -449,7 +460,7 @@ public final class MiBand implements BluetoothListener {
             }
 
             // led color
-            if(characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
                 if (changedValue == Protocol.SET_COLOR_RED
                         || changedValue == Protocol.SET_COLOR_BLUE
@@ -459,6 +470,14 @@ public final class MiBand implements BluetoothListener {
                 }
                 mLedColorSubject.onCompleted();
                 mLedColorSubject = PublishSubject.create();
+            }
+
+            // user info
+            if (characteristicId.equals(Profile.UUID_CHAR_USER_INFO)) {
+                mUserInfoSubject.onNext(null);
+                mUserInfoSubject.onCompleted();
+
+                mUserInfoSubject = PublishSubject.create();
             }
         }
 
