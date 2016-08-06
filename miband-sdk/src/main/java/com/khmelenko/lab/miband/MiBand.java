@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import rx.Observable;
-import rx.Subscriber;
 import rx.subjects.PublishSubject;
 
 /**
@@ -113,12 +112,9 @@ public final class MiBand implements BluetoothListener {
      * @param device Device to connect
      */
     public Observable<Boolean> connect(final BluetoothDevice device) {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                mConnectionSubject.subscribe(subscriber);
-                mBluetoothIO.connect(mContext, device);
-            }
+        return Observable.create(subscriber -> {
+            mConnectionSubject.subscribe(subscriber);
+            mBluetoothIO.connect(mContext, device);
         });
     }
 
@@ -135,12 +131,9 @@ public final class MiBand implements BluetoothListener {
      * Executes device pairing
      */
     public Observable<Void> pair() {
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-                mPairSubject.subscribe(subscriber);
-                // TODO mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
-            }
+        return Observable.create(subscriber -> {
+            mPairSubject.subscribe(subscriber);
+            // TODO mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
         });
     }
 
@@ -148,12 +141,9 @@ public final class MiBand implements BluetoothListener {
      * Reads Received Signal Strength Indication (RSSI)
      */
     public Observable<Integer> readRssi() {
-        return Observable.create(new Observable.OnSubscribe<Integer>() {
-            @Override
-            public void call(Subscriber<? super Integer> subscriber) {
-                mRssiSubject.subscribe(subscriber);
-                mBluetoothIO.readRssi();
-            }
+        return Observable.create(subscriber -> {
+            mRssiSubject.subscribe(subscriber);
+            mBluetoothIO.readRssi();
         });
     }
 
@@ -163,12 +153,9 @@ public final class MiBand implements BluetoothListener {
      * @return Battery info instance
      */
     public Observable<BatteryInfo> getBatteryInfo() {
-        return Observable.create(new Observable.OnSubscribe<BatteryInfo>() {
-            @Override
-            public void call(Subscriber<? super BatteryInfo> subscriber) {
-                mBatteryInfoSubject.subscribe(subscriber);
-                mBluetoothIO.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY);
-            }
+        return Observable.create(subscriber -> {
+            mBatteryInfoSubject.subscribe(subscriber);
+            mBluetoothIO.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_BATTERY);
         });
     }
 
@@ -176,26 +163,23 @@ public final class MiBand implements BluetoothListener {
      * Requests starting vibration
      */
     public Observable<Void> startVibration(final VibrationMode mode) {
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-                byte[] protocol;
-                switch (mode) {
-                    case VIBRATION_WITH_LED:
-                        protocol = Protocol.VIBRATION_WITH_LED;
-                        break;
-                    case VIBRATION_10_TIMES_WITH_LED:
-                        protocol = Protocol.VIBRATION_10_TIMES_WITH_LED;
-                        break;
-                    case VIBRATION_WITHOUT_LED:
-                        protocol = Protocol.VIBRATION_WITHOUT_LED;
-                        break;
-                    default:
-                        return;
-                }
-                mStartVibrationSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol);
+        return Observable.create(subscriber -> {
+            byte[] protocol;
+            switch (mode) {
+                case VIBRATION_WITH_LED:
+                    protocol = Protocol.VIBRATION_WITH_LED;
+                    break;
+                case VIBRATION_10_TIMES_WITH_LED:
+                    protocol = Protocol.VIBRATION_10_TIMES_WITH_LED;
+                    break;
+                case VIBRATION_WITHOUT_LED:
+                    protocol = Protocol.VIBRATION_WITHOUT_LED;
+                    break;
+                default:
+                    return;
             }
+            mStartVibrationSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol);
         });
     }
 
@@ -203,13 +187,10 @@ public final class MiBand implements BluetoothListener {
      * Requests stopping vibration
      */
     public Observable<Void> stopVibration() {
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-                mStopVibrationSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION,
-                        Protocol.STOP_VIBRATION);
-            }
+        return Observable.create(subscriber -> {
+            mStopVibrationSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION,
+                    Protocol.STOP_VIBRATION);
         });
     }
 
@@ -217,13 +198,10 @@ public final class MiBand implements BluetoothListener {
      * Enables sensor notifications
      */
     public Observable<Boolean> enableSensorDataNotify() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                mSensorNotificationSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
-                        Protocol.ENABLE_SENSOR_DATA_NOTIFY);
-            }
+        return Observable.create(subscriber -> {
+            mSensorNotificationSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                    Protocol.ENABLE_SENSOR_DATA_NOTIFY);
         });
     }
 
@@ -231,13 +209,10 @@ public final class MiBand implements BluetoothListener {
      * Disables sensor notifications
      */
     public Observable<Boolean> disableSensorDataNotify() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                mSensorNotificationSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
-                        Protocol.DISABLE_SENSOR_DATA_NOTIFY);
-            }
+        return Observable.create(subscriber -> {
+            mSensorNotificationSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                    Protocol.DISABLE_SENSOR_DATA_NOTIFY);
         });
     }
 
@@ -247,26 +222,17 @@ public final class MiBand implements BluetoothListener {
      * @param listener Notification listener
      */
     public void setSensorDataNotifyListener(final NotifyListener listener) {
-        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, new NotifyListener() {
-
-            @Override
-            public void onNotify(byte[] data) {
-                listener.onNotify(data);
-            }
-        });
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, listener::onNotify);
     }
 
     /**
      * Enables realtime steps notification
      */
     public Observable<Boolean> enableRealtimeStepsNotify() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                mRealtimeNotificationSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
-                        Protocol.ENABLE_REALTIME_STEPS_NOTIFY);
-            }
+        return Observable.create(subscriber -> {
+            mRealtimeNotificationSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                    Protocol.ENABLE_REALTIME_STEPS_NOTIFY);
         });
     }
 
@@ -274,13 +240,10 @@ public final class MiBand implements BluetoothListener {
      * Disables realtime steps notification
      */
     public Observable<Boolean> disableRealtimeStepsNotify() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
-            @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
-                mRealtimeNotificationSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
-                        Protocol.DISABLE_REALTIME_STEPS_NOTIFY);
-            }
+        return Observable.create(subscriber -> {
+            mRealtimeNotificationSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT,
+                    Protocol.DISABLE_REALTIME_STEPS_NOTIFY);
         });
     }
 
@@ -290,15 +253,11 @@ public final class MiBand implements BluetoothListener {
      * @param listener Notification listener
      */
     public void setRealtimeStepsNotifyListener(final RealtimeStepsNotifyListener listener) {
-        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, new NotifyListener() {
-
-            @Override
-            public void onNotify(byte[] data) {
-                Log.d(TAG, Arrays.toString(data));
-                if (data.length == 4) {
-                    int steps = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
-                    listener.onNotify(steps);
-                }
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, data -> {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 4) {
+                int steps = data[3] << 24 | (data[2] & 0xFF) << 16 | (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+                listener.onNotify(steps);
             }
         });
     }
@@ -318,29 +277,26 @@ public final class MiBand implements BluetoothListener {
      * @param color Color
      */
     public Observable<Void> setLedColor(final LedColor color) {
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-                byte[] protocol;
-                switch (color) {
-                    case RED:
-                        protocol = Protocol.SET_COLOR_RED;
-                        break;
-                    case BLUE:
-                        protocol = Protocol.SET_COLOR_BLUE;
-                        break;
-                    case GREEN:
-                        protocol = Protocol.SET_COLOR_GREEN;
-                        break;
-                    case ORANGE:
-                        protocol = Protocol.SET_COLOR_ORANGE;
-                        break;
-                    default:
-                        return;
-                }
-                mLedColorSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocol);
+        return Observable.create(subscriber -> {
+            byte[] protocol;
+            switch (color) {
+                case RED:
+                    protocol = Protocol.SET_COLOR_RED;
+                    break;
+                case BLUE:
+                    protocol = Protocol.SET_COLOR_BLUE;
+                    break;
+                case GREEN:
+                    protocol = Protocol.SET_COLOR_GREEN;
+                    break;
+                case ORANGE:
+                    protocol = Protocol.SET_COLOR_ORANGE;
+                    break;
+                default:
+                    return;
             }
+            mLedColorSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_CONTROL_POINT, protocol);
         });
 
     }
@@ -351,15 +307,12 @@ public final class MiBand implements BluetoothListener {
      * @param userInfo User info
      */
     public Observable<Void> setUserInfo(final UserInfo userInfo) {
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-                mUserInfoSubject.subscribe(subscriber);
+        return Observable.create(subscriber -> {
+            mUserInfoSubject.subscribe(subscriber);
 
-                BluetoothDevice device = mBluetoothIO.getConnectedDevice();
-                byte[] data = userInfo.getBytes(device.getAddress());
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data);
-            }
+            BluetoothDevice device = mBluetoothIO.getConnectedDevice();
+            byte[] data = userInfo.getBytes(device.getAddress());
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_USER_INFO, data);
         });
     }
 
@@ -367,12 +320,9 @@ public final class MiBand implements BluetoothListener {
      * Starts heart rate scanner
      */
     public Observable<Void> startHeartRateScan() {
-        return Observable.create(new Observable.OnSubscribe<Void>() {
-            @Override
-            public void call(Subscriber<? super Void> subscriber) {
-                mHeartRateSubject.subscribe(subscriber);
-                mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN);
-            }
+        return Observable.create(subscriber -> {
+            mHeartRateSubject.subscribe(subscriber);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_CHAR_HEARTRATE, Protocol.START_HEART_RATE_SCAN);
         });
     }
 
@@ -382,14 +332,11 @@ public final class MiBand implements BluetoothListener {
      * @param listener Listener
      */
     public void setHeartRateScanListener(final HeartRateNotifyListener listener) {
-        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, new NotifyListener() {
-            @Override
-            public void onNotify(byte[] data) {
-                Log.d(TAG, Arrays.toString(data));
-                if (data.length == 2 && data[0] == 6) {
-                    int heartRate = data[1] & 0xFF;
-                    listener.onNotify(heartRate);
-                }
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, data -> {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 2 && data[0] == 6) {
+                int heartRate = data[1] & 0xFF;
+                listener.onNotify(heartRate);
             }
         });
     }
