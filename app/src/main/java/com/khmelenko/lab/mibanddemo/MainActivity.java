@@ -16,7 +16,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.khmelenko.lab.miband.listeners.ActionCallback;
 import com.khmelenko.lab.miband.MiBand;
 import com.khmelenko.lab.miband.listeners.HeartRateNotifyListener;
 import com.khmelenko.lab.miband.listeners.NotifyListener;
@@ -29,12 +28,16 @@ import com.khmelenko.lab.miband.model.VibrationMode;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.Observable;
 
 import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Action1;
 
+/**
+ * Main application activity
+ *
+ * @author Dmytro Khmelenko
+ */
 public class MainActivity extends Activity {
     static final String[] BUTTONS = new String[]{
             "Connect",
@@ -176,21 +179,24 @@ public class MainActivity extends Activity {
                         public void call(Void aVoid) {
                             Log.d(TAG, "Vibration started");
                         }
-                    });;
+                    });
+                    ;
                 } else if (position == menuIndex++) {
                     miband.startVibration(VibrationMode.VIBRATION_10_TIMES_WITH_LED).subscribe(new Action1<Void>() {
                         @Override
                         public void call(Void aVoid) {
                             Log.d(TAG, "Vibration started");
                         }
-                    });;
+                    });
+                    ;
                 } else if (position == menuIndex++) {
                     miband.stopVibration().subscribe(new Action1<Void>() {
                         @Override
                         public void call(Void aVoid) {
                             Log.d(TAG, "Vibration stopped");
                         }
-                    });;
+                    });
+                    ;
                 } else if (position == menuIndex++) {
                     miband.setNormalNotifyListener(new NotifyListener() {
 
