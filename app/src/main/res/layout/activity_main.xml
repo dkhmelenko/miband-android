@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/action_connect"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_pair"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_show_services"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_read_rssi"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_battery_info"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_set_user_info"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_set_heart_rate_notify_listener"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_start_heart_rate_scan"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_start_vibro_with_led"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_start_vibro"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_start_vibro_with_led_time"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_stop_vibro"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_set_notify_listener"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_set_realtime_notify_listener"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_enable_realtime_steps_notify"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_disable_realtime_steps_notify"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_set_sensor_data_notify_listener"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_enable_sensor_data_notify"
+            style="@style/Button"/>
+
+        <Button
+            android:id="@+id/action_disable_sensor_data_notify"
+            style="@style/Button"/>
+
+    </LinearLayout>
+
+</ScrollView>
