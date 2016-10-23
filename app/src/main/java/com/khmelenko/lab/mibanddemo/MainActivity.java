@@ -133,28 +133,28 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.action_start_vibro_with_led)
     public void actionStartVibroWithLed() {
-        mMiBand.startVibration(VibrationMode.VIBRATION_WITH_LED).subscribe(() -> {
+        mMiBand.startVibration(VibrationMode.VIBRATION_WITH_LED).subscribe(Void -> {
             Log.d(TAG, "Vibration started");
         });
     }
 
     @OnClick(R.id.action_start_vibro)
     public void actionStartVibro() {
-        mMiBand.startVibration(VibrationMode.VIBRATION_WITHOUT_LED).subscribe(() -> {
+        mMiBand.startVibration(VibrationMode.VIBRATION_WITHOUT_LED).subscribe(Void -> {
             Log.d(TAG, "Vibration started");
         });
     }
 
     @OnClick(R.id.action_start_vibro_with_led_time)
     public void actionStartVibroWithLedAndTime() {
-        mMiBand.startVibration(VibrationMode.VIBRATION_10_TIMES_WITH_LED).subscribe(() -> {
+        mMiBand.startVibration(VibrationMode.VIBRATION_10_TIMES_WITH_LED).subscribe(Void -> {
             Log.d(TAG, "Vibration started");
         });
     }
 
     @OnClick(R.id.action_stop_vibro)
     public void actionStopVibration() {
-        mMiBand.stopVibration().subscribe(() -> {
+        mMiBand.stopVibration().subscribe(Void -> {
             Log.d(TAG, "Vibration stopped");
         });
     }
