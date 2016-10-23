@@ -22,6 +22,7 @@ import com.khmelenko.lab.miband.model.VibrationMode;
 import java.util.Arrays;
 import java.util.UUID;
 
+import rx.Completable;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
@@ -162,7 +163,7 @@ public final class MiBand implements BluetoothListener {
     /**
      * Requests starting vibration
      */
-    public Observable<Void> startVibration(final VibrationMode mode) {
+    public Completable startVibration(final VibrationMode mode) {
         return Observable.create(subscriber -> {
             byte[] protocol;
             switch (mode) {
@@ -180,18 +181,18 @@ public final class MiBand implements BluetoothListener {
             }
             mStartVibrationSubject.subscribe(subscriber);
             mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol);
-        });
+        }).toCompletable();
     }
 
     /**
      * Requests stopping vibration
      */
-    public Observable<Void> stopVibration() {
+    public Completable stopVibration() {
         return Observable.create(subscriber -> {
             mStopVibrationSubject.subscribe(subscriber);
             mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION,
                     Protocol.STOP_VIBRATION);
-        });
+        }).toCompletable();
     }
 
     /**
