@@ -69,6 +69,8 @@ public final class MiBand implements BluetoothListener {
 
     /**
      * Starts scanning for devices
+     *
+     * @return An Observable which emits ScanResult
      */
     public Observable<ScanResult> startScan() {
         return Observable.create(subscriber -> {
@@ -88,6 +90,35 @@ public final class MiBand implements BluetoothListener {
         });
     }
 
+    /**
+     * Stops scanning for devices
+     *
+     * @return An Observable which emits ScanResult
+     */
+    public Observable<ScanResult> stopScan() {
+        return Observable.create(subscriber -> {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter != null) {
+                BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+                if (scanner != null) {
+                    scanner.stopScan(getScanCallback(subscriber));
+                } else {
+                    Log.e(TAG, "BluetoothLeScanner is null");
+                    subscriber.onError(new NullPointerException("BluetoothLeScanner is null"));
+                }
+            } else {
+                Log.e(TAG, "BluetoothAdapter is null");
+                subscriber.onError(new NullPointerException("BluetoothLeScanner is null"));
+            }
+        });
+    }
+
+    /**
+     * Creates {@link ScanCallback} instance
+     *
+     * @param subscriber Subscriber
+     * @return ScanCallback instance
+     */
     private ScanCallback getScanCallback(Subscriber<? super ScanResult> subscriber) {
         return new ScanCallback() {
             @Override
@@ -101,26 +132,6 @@ public final class MiBand implements BluetoothListener {
                 subscriber.onCompleted();
             }
         };
-    }
-
-    /**
-     * Stops scanning for devices
-     *
-     * @param callback Callback
-     */
-    public static void stopScan(ScanCallback callback) {
-        // TODO Change to Rx
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter != null) {
-            BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
-            if (scanner != null) {
-                scanner.stopScan(callback);
-            } else {
-                Log.e(TAG, "BluetoothLeScanner is null");
-            }
-        } else {
-            Log.e(TAG, "BluetoothAdapter is null");
-        }
     }
 
     /**
