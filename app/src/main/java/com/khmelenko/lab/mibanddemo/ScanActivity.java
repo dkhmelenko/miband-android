@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,7 +24,6 @@ public class ScanActivity extends Activity {
     private static final String TAG = "==[mibandtest]==";
     private MiBand miband;
 
-
     HashMap<String, BluetoothDevice> devices = new HashMap<>();
 
 
@@ -34,35 +34,37 @@ public class ScanActivity extends Activity {
 
         miband = new MiBand(this);
 
-        final ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.item, new ArrayList<String>());
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item, new ArrayList<>());
 
         final ScanCallback scanCallback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
-                BluetoothDevice device = result.getDevice();
-                Log.d(TAG,
-                        "Scan results: name:" + device.getName() + ",uuid:"
-                                + device.getUuids() + ",add:"
-                                + device.getAddress() + ",type:"
-                                + device.getType() + ",bondState:"
-                                + device.getBondState() + ",rssi:" + result.getRssi());
 
-                String item = device.getName() + "|" + device.getAddress();
-                if (!devices.containsKey(item)) {
-                    devices.put(item, device);
-                    adapter.add(item);
-                }
 
             }
         };
 
+        Button startScanButton = (Button) findViewById(R.id.starScanButton);
+        startScanButton.setOnClickListener(v -> {
+            Log.d(TAG, "Scanning started...");
+            miband.startScan()
+                    .subscribe(result -> {
+                                BluetoothDevice device = result.getDevice();
+                                Log.d(TAG, "Scan results: name:" + device.getName() + ",uuid:"
+                                        + device.getUuids() + ",add:"
+                                        + device.getAddress() + ",type:"
+                                        + device.getType() + ",bondState:"
+                                        + device.getBondState() + ",rssi:" + result.getRssi());
 
-        findViewById(R.id.starScanButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "Scanning started...");
-                MiBand.startScan(scanCallback);
-            }
+                                String item = device.getName() + "|" + device.getAddress();
+                                if (!devices.containsKey(item)) {
+                                    devices.put(item, device);
+                                    adapter.add(item);
+                                }
+                            },
+                            throwable -> {
+                                throwable.printStackTrace();
+                            });
         });
 
         findViewById(R.id.stopScanButton).setOnClickListener(new View.OnClickListener() {

@@ -5,8 +5,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.khmelenko.lab.miband.listeners.HeartRateNotifyListener;
@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import rx.Observable;
+import rx.Subscriber;
 import rx.subjects.PublishSubject;
 
 /**
@@ -68,22 +69,38 @@ public final class MiBand implements BluetoothListener {
 
     /**
      * Starts scanning for devices
-     *
-     * @param callback Callback
      */
-    public static void startScan(@NonNull ScanCallback callback) {
-        // TODO Change to Rx
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        if (adapter != null) {
-            BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
-            if (scanner != null) {
-                scanner.startScan(callback);
+    public Observable<ScanResult> startScan() {
+        return Observable.create(subscriber -> {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter != null) {
+                BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+                if (scanner != null) {
+                    scanner.startScan(getScanCallback(subscriber));
+                } else {
+                    Log.e(TAG, "BluetoothLeScanner is null");
+                    subscriber.onError(new NullPointerException("BluetoothLeScanner is null"));
+                }
             } else {
-                Log.e(TAG, "BluetoothLeScanner is null");
+                Log.e(TAG, "BluetoothAdapter is null");
+                subscriber.onError(new NullPointerException("BluetoothLeScanner is null"));
             }
-        } else {
-            Log.e(TAG, "BluetoothAdapter is null");
-        }
+        });
+    }
+
+    private ScanCallback getScanCallback(Subscriber<? super ScanResult> subscriber) {
+        return new ScanCallback() {
+            @Override
+            public void onScanFailed(int errorCode) {
+                subscriber.onError(new Exception("Scan failed, error code " + errorCode));
+            }
+
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                subscriber.onNext(result);
+                subscriber.onCompleted();
+            }
+        };
     }
 
     /**
