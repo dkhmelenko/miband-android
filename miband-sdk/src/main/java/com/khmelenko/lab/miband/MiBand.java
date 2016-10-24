@@ -427,7 +427,7 @@ public final class MiBand implements BluetoothListener {
             // sensor notify
             if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
-                if (changedValue == Protocol.ENABLE_SENSOR_DATA_NOTIFY) {
+                if (Arrays.equals(changedValue, Protocol.ENABLE_SENSOR_DATA_NOTIFY)) {
                     mSensorNotificationSubject.onNext(true);
                 } else {
                     mSensorNotificationSubject.onNext(false);
@@ -439,7 +439,7 @@ public final class MiBand implements BluetoothListener {
             // realtime notify
             if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
-                if (changedValue == Protocol.ENABLE_REALTIME_STEPS_NOTIFY) {
+                if (Arrays.equals(changedValue, Protocol.ENABLE_REALTIME_STEPS_NOTIFY)) {
                     mRealtimeNotificationSubject.onNext(true);
                 } else {
                     mRealtimeNotificationSubject.onNext(false);
@@ -451,10 +451,10 @@ public final class MiBand implements BluetoothListener {
             // led color
             if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
-                if (changedValue == Protocol.SET_COLOR_RED
-                        || changedValue == Protocol.SET_COLOR_BLUE
-                        || changedValue == Protocol.SET_COLOR_GREEN
-                        || changedValue == Protocol.SET_COLOR_ORANGE) {
+                if (Arrays.equals(changedValue, Protocol.SET_COLOR_RED)
+                        || Arrays.equals(changedValue, Protocol.SET_COLOR_BLUE)
+                        || Arrays.equals(changedValue, Protocol.SET_COLOR_GREEN)
+                        || Arrays.equals(changedValue, Protocol.SET_COLOR_ORANGE)) {
                     mLedColorSubject.onNext(null);
                 }
                 mLedColorSubject.onCompleted();
@@ -474,8 +474,7 @@ public final class MiBand implements BluetoothListener {
         if (serviceId.equals(Profile.UUID_SERVICE_VIBRATION)) {
             if (characteristicId.equals(Profile.UUID_CHAR_VIBRATION)) {
                 byte[] changedValue = data.getValue();
-                // TODO Improve arrays comparision
-                if (changedValue == Protocol.STOP_VIBRATION) {
+                if (Arrays.equals(changedValue, Protocol.STOP_VIBRATION)) {
                     mStopVibrationSubject.onNext(null);
                     mStopVibrationSubject.onCompleted();
 
@@ -494,7 +493,7 @@ public final class MiBand implements BluetoothListener {
         if (serviceId.equals(Profile.UUID_SERVICE_HEARTRATE)) {
             if (characteristicId.equals(Profile.UUID_CHAR_HEARTRATE)) {
                 byte[] changedValue = data.getValue();
-                if (changedValue == Protocol.START_HEART_RATE_SCAN) {
+                if (Arrays.equals(changedValue, Protocol.START_HEART_RATE_SCAN)) {
                     mHeartRateSubject.onNext(null);
                     mHeartRateSubject.onCompleted();
 
