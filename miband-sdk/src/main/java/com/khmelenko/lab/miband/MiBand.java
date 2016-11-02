@@ -376,7 +376,7 @@ public final class MiBand implements BluetoothListener {
      * @param result True, if connected. False if disconnected
      */
     private void notifyConnectionResult(boolean result) {
-        mConnectionSubject.onNext(true);
+        mConnectionSubject.onNext(result);
         mConnectionSubject.onComplete();
 
         // create new connection subject
@@ -455,6 +455,7 @@ public final class MiBand implements BluetoothListener {
                         || Arrays.equals(changedValue, Protocol.SET_COLOR_BLUE)
                         || Arrays.equals(changedValue, Protocol.SET_COLOR_GREEN)
                         || Arrays.equals(changedValue, Protocol.SET_COLOR_ORANGE)) {
+                    // TODO Emit new color
                 }
                 mLedColorSubject.onComplete();
                 mLedColorSubject = PublishSubject.create();

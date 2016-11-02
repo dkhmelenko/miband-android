@@ -9,7 +9,7 @@ import io.reactivex.disposables.Disposable;
  *
  * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
  */
-public class ObserverWrapper<T> implements Observer<T> {
+class ObserverWrapper<T> implements Observer<T> {
 
     private final Emitter<T> mEmitter;
 
