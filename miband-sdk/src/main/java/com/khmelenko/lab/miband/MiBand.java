@@ -47,7 +47,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Void> mStopVibrationSubject;
     private PublishSubject<Boolean> mSensorNotificationSubject;
     private PublishSubject<Boolean> mRealtimeNotificationSubject;
-    private PublishSubject<Void> mLedColorSubject;
+    private PublishSubject<LedColor> mLedColorSubject;
     private PublishSubject<Void> mUserInfoSubject;
     private PublishSubject<Void> mHeartRateSubject;
 
@@ -305,7 +305,7 @@ public final class MiBand implements BluetoothListener {
      *
      * @param color Color
      */
-    public Observable<Void> setLedColor(final LedColor color) {
+    public Observable<LedColor> setLedColor(final LedColor color) {
         return Observable.create(subscriber -> {
             byte[] protocol;
             switch (color) {
@@ -451,12 +451,17 @@ public final class MiBand implements BluetoothListener {
             // led color
             if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
                 byte[] changedValue = data.getValue();
-                if (Arrays.equals(changedValue, Protocol.SET_COLOR_RED)
-                        || Arrays.equals(changedValue, Protocol.SET_COLOR_BLUE)
-                        || Arrays.equals(changedValue, Protocol.SET_COLOR_GREEN)
-                        || Arrays.equals(changedValue, Protocol.SET_COLOR_ORANGE)) {
-                    // TODO Emit new color
+                LedColor ledColor = LedColor.BLUE;
+                if (Arrays.equals(changedValue, Protocol.SET_COLOR_RED)) {
+                    ledColor = LedColor.RED;
+                } else if (Arrays.equals(changedValue, Protocol.SET_COLOR_BLUE)) {
+                    ledColor = LedColor.BLUE;
+                } else if (Arrays.equals(changedValue, Protocol.SET_COLOR_GREEN)) {
+                    ledColor = LedColor.GREEN;
+                } else if (Arrays.equals(changedValue, Protocol.SET_COLOR_ORANGE)) {
+                    ledColor = LedColor.ORANGE;
                 }
+                mLedColorSubject.onNext(ledColor);
                 mLedColorSubject.onComplete();
                 mLedColorSubject = PublishSubject.create();
             }
@@ -481,7 +486,6 @@ public final class MiBand implements BluetoothListener {
                     mStartVibrationSubject.onComplete();
 
                     mStartVibrationSubject = PublishSubject.create();
-
                 }
             }
         }
