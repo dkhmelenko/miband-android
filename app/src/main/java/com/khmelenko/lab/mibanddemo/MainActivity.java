@@ -17,8 +17,8 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import butterknife.OnClick;
-import rx.Subscriber;
-import rx.Subscription;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Main application activity
@@ -45,31 +45,19 @@ public class MainActivity extends AppCompatActivity {
         final BluetoothDevice device = intent.getParcelableExtra("device");
 
         final ProgressDialog pd = ProgressDialog.show(MainActivity.this, "", "Connecting...");
-        rx.Observable<Boolean> observable = mMiBand.connect(device);
-        Subscription subscription = observable.subscribe(new Subscriber<Boolean>() {
-            @Override
-            public void onCompleted() {
-
-                Log.d(TAG, "Connect onCompleted");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                pd.dismiss();
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onNext(Boolean result) {
-                pd.dismiss();
-                Log.d(TAG, "Connect onNext: " + String.valueOf(result));
-            }
+        Observable<Boolean> observable = mMiBand.connect(device);
+        Disposable subscription = observable.subscribe(result -> {
+            pd.dismiss();
+            Log.d(TAG, "Connect onNext: " + String.valueOf(result));
+        }, throwable -> {
+            pd.dismiss();
+            throwable.printStackTrace();
         });
     }
 
     @OnClick(R.id.action_pair)
     public void actionPair() {
-        rx.Observable<Void> observable = mMiBand.pair();
+        Observable<Void> observable = mMiBand.pair();
         observable.subscribe(aVoid -> {
             Log.d(TAG, "Pairing successful");
         }, throwable -> {
@@ -85,28 +73,15 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.action_read_rssi)
     public void actionReadRssi() {
-        rx.Observable<Integer> observable = mMiBand.readRssi();
-        observable.subscribe(new Subscriber<Integer>() {
-            @Override
-            public void onCompleted() {
-                Log.d(TAG, "Rssi onCompleted");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.d(TAG, "readRssi fail");
-            }
-
-            @Override
-            public void onNext(Integer rssi) {
-                Log.d(TAG, "rssi:" + String.valueOf(rssi));
-            }
-        });
+        Observable<Integer> observable = mMiBand.readRssi();
+        observable.subscribe(rssi -> Log.d(TAG, "rssi:" + String.valueOf(rssi)),
+                throwable -> Log.d(TAG, "readRssi fail"),
+                () -> Log.d(TAG, "Rssi onCompleted"));
     }
 
     @OnClick(R.id.action_battery_info)
     public void actionBatteryInfo() {
-        rx.Observable<BatteryInfo> observable = mMiBand.getBatteryInfo();
+        Observable<BatteryInfo> observable = mMiBand.getBatteryInfo();
         observable.subscribe(batteryInfo -> {
             Log.d(TAG, batteryInfo.toString());
         }, throwable -> {

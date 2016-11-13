@@ -251,7 +251,7 @@ public final class MiBand implements BluetoothListener {
      * @param listener Notification listener
      */
     public void setSensorDataNotifyListener(final NotifyListener listener) {
-        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, listener::onNotify);
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_SENSOR_DATA, listener);
     }
 
     /**
