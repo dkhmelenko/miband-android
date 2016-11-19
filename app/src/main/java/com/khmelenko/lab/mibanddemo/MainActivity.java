@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import com.khmelenko.lab.miband.MiBand;
 import com.khmelenko.lab.miband.model.UserInfo;
@@ -16,6 +15,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import butterknife.OnClick;
+import timber.log.Timber;
 
 /**
  * Main application activity
@@ -23,8 +23,6 @@ import butterknife.OnClick;
  * @author Dmytro Khmelenko
  */
 public class MainActivity extends AppCompatActivity {
-
-    private static final String TAG = "==[mibandtest]==";
 
     private MiBand mMiBand;
 
@@ -45,20 +43,20 @@ public class MainActivity extends AppCompatActivity {
         mMiBand.connect(device)
                 .subscribe(result -> {
                     pd.dismiss();
-                    Log.d(TAG, "Connect onNext: " + String.valueOf(result));
+                    Timber.d("Connect onNext: " + String.valueOf(result));
                 }, throwable -> {
                     pd.dismiss();
                     throwable.printStackTrace();
+                    Timber.e(throwable);
                 });
     }
 
     @OnClick(R.id.action_pair)
     public void actionPair() {
         mMiBand.pair().subscribe(aVoid -> {
-            Log.d(TAG, "Pairing successful");
+            Timber.d("Pairing successful");
         }, throwable -> {
-            Log.d(TAG, "Pairing failed");
-            throwable.printStackTrace();
+            Timber.e(throwable, "Pairing failed");
         });
     }
 
@@ -70,36 +68,36 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.action_read_rssi)
     public void actionReadRssi() {
         mMiBand.readRssi()
-                .subscribe(rssi -> Log.d(TAG, "rssi:" + String.valueOf(rssi)),
-                        throwable -> Log.d(TAG, "readRssi fail"),
-                        () -> Log.d(TAG, "Rssi onCompleted"));
+                .subscribe(rssi -> Timber.d("rssi:" + String.valueOf(rssi)),
+                        throwable -> Timber.e(throwable, "readRssi fail"),
+                        () -> Timber.d("Rssi onCompleted"));
     }
 
     @OnClick(R.id.action_battery_info)
     public void actionBatteryInfo() {
         mMiBand.getBatteryInfo()
                 .subscribe(batteryInfo -> {
-                    Log.d(TAG, batteryInfo.toString());
+                    Timber.d(batteryInfo.toString());
                 }, throwable -> {
-                    Log.d(TAG, "getBatteryInfo fail");
+                    Timber.e(throwable, "getBatteryInfo fail");
                 });
     }
 
     @OnClick(R.id.action_set_user_info)
     public void actionSetUserInfo() {
         UserInfo userInfo = new UserInfo(20271234, 1, 32, 160, 40, "alias", 0);
-        Log.d(TAG, "setUserInfo:" + userInfo.toString() + ",data:" + Arrays.toString(userInfo.getBytes(mMiBand.getDevice().getAddress())));
+        Timber.d("setUserInfo:" + userInfo.toString() + ",data:" + Arrays.toString(userInfo.getBytes(mMiBand.getDevice().getAddress())));
         mMiBand.setUserInfo(userInfo)
                 .subscribe(aVoid -> {
-                    // do nothing
+                    Timber.d("setUserInfo success");
                 }, throwable -> {
-                    Log.d(TAG, "setUserInfo failed");
+                    Timber.e(throwable, "setUserInfo failed");
                 });
     }
 
     @OnClick(R.id.action_set_heart_rate_notify_listener)
     public void actionSetHeartRateNotifyListener() {
-        mMiBand.setHeartRateScanListener(heartRate -> Log.d(TAG, "heart rate: " + heartRate));
+        mMiBand.setHeartRateScanListener(heartRate -> Timber.d("heart rate: " + heartRate));
     }
 
     @OnClick(R.id.action_start_heart_rate_scan)
@@ -111,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     public void actionStartVibroWithLed() {
         mMiBand.startVibration(VibrationMode.VIBRATION_WITH_LED)
                 .subscribe(Void -> {
-                    Log.d(TAG, "Vibration started");
+                    Timber.d("Vibration started");
                 });
     }
 
@@ -119,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
     public void actionStartVibro() {
         mMiBand.startVibration(VibrationMode.VIBRATION_WITHOUT_LED)
                 .subscribe(Void -> {
-                    Log.d(TAG, "Vibration started");
+                    Timber.d("Vibration started");
                 });
     }
 
@@ -127,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
     public void actionStartVibroWithLedAndTime() {
         mMiBand.startVibration(VibrationMode.VIBRATION_10_TIMES_WITH_LED)
                 .subscribe(Void -> {
-                    Log.d(TAG, "Vibration started");
+                    Timber.d("Vibration started");
                 });
     }
 
@@ -135,18 +133,18 @@ public class MainActivity extends AppCompatActivity {
     public void actionStopVibration() {
         mMiBand.stopVibration()
                 .subscribe(Void -> {
-                    Log.d(TAG, "Vibration stopped");
+                    Timber.d("Vibration stopped");
                 });
     }
 
     @OnClick(R.id.action_set_notify_listener)
     public void actionSetNotifyListener() {
-        mMiBand.setNormalNotifyListener(data -> Log.d(TAG, "NormalNotifyListener:" + Arrays.toString(data)));
+        mMiBand.setNormalNotifyListener(data -> Timber.d("NormalNotifyListener:" + Arrays.toString(data)));
     }
 
     @OnClick(R.id.action_set_realtime_notify_listener)
     public void actionSetRealtimeNotifyListener() {
-        mMiBand.setRealtimeStepsNotifyListener(steps -> Log.d(TAG, "RealtimeStepsNotifyListener:" + steps));
+        mMiBand.setRealtimeStepsNotifyListener(steps -> Timber.d("RealtimeStepsNotifyListener:" + steps));
     }
 
     @OnClick(R.id.action_enable_realtime_steps_notify)
@@ -171,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             int d3 = (data[i++] & 0xFF) | (data[i++] & 0xFF) << 8;
 
             String logMsg = index + "," + d1 + "," + d2 + "," + d3;
-            Log.d(TAG, logMsg);
+            Timber.d(logMsg);
         });
     }
 

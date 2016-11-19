@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -18,9 +17,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import rx.functions.Action1;
+import timber.log.Timber;
 
 public class ScanActivity extends Activity {
-    private static final String TAG = "==[mibandtest]==";
     private MiBand miband;
 
     HashMap<String, BluetoothDevice> devices = new HashMap<>();
@@ -38,7 +37,7 @@ public class ScanActivity extends Activity {
 
         Button startScanButton = (Button) findViewById(R.id.starScanButton);
         startScanButton.setOnClickListener(v -> {
-            Log.d(TAG, "Scanning started...");
+            Timber.d("Scanning started...");
             miband.startScan()
                     .subscribe(handleScanResult(),
                             Throwable::printStackTrace);
@@ -47,7 +46,7 @@ public class ScanActivity extends Activity {
         findViewById(R.id.stopScanButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "Stop scanning...");
+                Timber.d("Stop scanning...");
                 miband.stopScan().subscribe(handleScanResult());
             }
         });
@@ -80,7 +79,7 @@ public class ScanActivity extends Activity {
     private Action1<ScanResult> handleScanResult() {
         return result -> {
             BluetoothDevice device = result.getDevice();
-            Log.d(TAG, "Scan results: name:" + device.getName() + ",uuid:"
+            Timber.d("Scan results: name:" + device.getName() + ",uuid:"
                     + device.getUuids() + ",add:"
                     + device.getAddress() + ",type:"
                     + device.getType() + ",bondState:"
