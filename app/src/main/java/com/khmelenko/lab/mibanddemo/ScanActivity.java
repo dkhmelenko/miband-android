@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -14,15 +13,22 @@ import android.widget.TextView;
 import com.khmelenko.lab.miband.MiBand;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
-import rx.functions.Action1;
+import io.reactivex.functions.Consumer;
 import timber.log.Timber;
 
+/**
+ * Scanner activity
+ *
+ * @author Dmytro Khmelenko
+ */
 public class ScanActivity extends Activity {
-    private MiBand miband;
 
-    HashMap<String, BluetoothDevice> devices = new HashMap<>();
+    private MiBand mMiBand;
+
+    private HashMap<String, BluetoothDevice> mDevices = new HashMap<>();
     private ArrayAdapter<String> mAdapter;
 
 
@@ -31,24 +37,22 @@ public class ScanActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan);
 
-        miband = new MiBand(this);
+        mMiBand = new MiBand(this);
 
         mAdapter = new ArrayAdapter<>(this, R.layout.item, new ArrayList<>());
 
         Button startScanButton = (Button) findViewById(R.id.starScanButton);
         startScanButton.setOnClickListener(v -> {
             Timber.d("Scanning started...");
-            miband.startScan()
+            mMiBand.startScan()
                     .subscribe(handleScanResult(),
                             Throwable::printStackTrace);
         });
 
-        findViewById(R.id.stopScanButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Timber.d("Stop scanning...");
-                miband.stopScan().subscribe(handleScanResult());
-            }
+        findViewById(R.id.stopScanButton).setOnClickListener(v -> {
+            Timber.d("Stop scanning...");
+            mMiBand.stopScan()
+                    .subscribe(handleScanResult());
         });
 
 
@@ -56,11 +60,12 @@ public class ScanActivity extends Activity {
         lv.setAdapter(mAdapter);
         lv.setOnItemClickListener((parent, view, position, id) -> {
             String item = ((TextView) view).getText().toString();
-            if (devices.containsKey(item)) {
+            if (mDevices.containsKey(item)) {
 
-                miband.stopScan().subscribe(handleScanResult());
+                mMiBand.stopScan()
+                        .subscribe(handleScanResult());
 
-                BluetoothDevice device = devices.get(item);
+                BluetoothDevice device = mDevices.get(item);
                 Intent intent = new Intent();
                 intent.putExtra("device", device);
                 intent.setClass(ScanActivity.this, MainActivity.class);
@@ -68,7 +73,6 @@ public class ScanActivity extends Activity {
                 ScanActivity.this.finish();
             }
         });
-
     }
 
     /**
@@ -76,18 +80,18 @@ public class ScanActivity extends Activity {
      *
      * @return Action handler
      */
-    private Action1<ScanResult> handleScanResult() {
+    private Consumer<ScanResult> handleScanResult() {
         return result -> {
             BluetoothDevice device = result.getDevice();
             Timber.d("Scan results: name:" + device.getName() + ",uuid:"
-                    + device.getUuids() + ",add:"
+                    + Arrays.toString(device.getUuids()) + ",add:"
                     + device.getAddress() + ",type:"
                     + device.getType() + ",bondState:"
                     + device.getBondState() + ",rssi:" + result.getRssi());
 
             String item = device.getName() + "|" + device.getAddress();
-            if (!devices.containsKey(item)) {
-                devices.put(item, device);
+            if (!mDevices.containsKey(item)) {
+                mDevices.put(item, device);
                 mAdapter.add(item);
             }
         };
