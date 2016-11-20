@@ -2,6 +2,8 @@ package com.khmelenko.lab.miband;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 
+import java.util.UUID;
+
 /**
  * Bluetooth listener
  *
@@ -34,7 +36,16 @@ public interface BluetoothListener {
     void onResultRssi(int rssi);
 
     /**
-     * Called on fail
+     * Called on fail from service
+     *
+     * @param serviceUUID      Service UUID
+     * @param characteristicId Characteristic ID
+     * @param msg              Error message
+     */
+    void onFail(UUID serviceUUID, UUID characteristicId, String msg);
+
+    /**
+     * Called on fail from Bluetooth IO
      *
      * @param errorCode Error code
      * @param msg       Error message

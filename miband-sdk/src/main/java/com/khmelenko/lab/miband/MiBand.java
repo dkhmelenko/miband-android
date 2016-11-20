@@ -512,7 +512,83 @@ public final class MiBand implements BluetoothListener {
     }
 
     @Override
+    public void onFail(UUID serviceId, UUID characteristicId, String msg) {
+        if (serviceId.equals(Profile.UUID_SERVICE_MILI)) {
+
+            // Battery info
+            if (characteristicId.equals(Profile.UUID_CHAR_BATTERY)) {
+                Log.d(TAG, "getBatteryInfo failed: " + msg);
+                mBatteryInfoSubject.onError(new Exception("Wrong data format for battery info"));
+                mBatteryInfoSubject = PublishSubject.create();
+            }
+
+            // Pair
+            if (characteristicId.equals(Profile.UUID_CHAR_PAIR)) {
+                Log.d(TAG, "Pair failed " + msg);
+                mPairSubject.onError(new Exception("Pairing failed"));
+                mPairSubject = PublishSubject.create();
+            }
+
+            // sensor notify
+            if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+                Log.d(TAG, "Sensor notify failed " + msg);
+                mSensorNotificationSubject.onError(new Exception("Sensor notify failed"));
+                mSensorNotificationSubject = PublishSubject.create();
+            }
+
+            // realtime notify
+            if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+                Log.d(TAG, "Realtime notify failed " + msg);
+                mRealtimeNotificationSubject.onError(new Exception("Realtime notify failed"));
+                mRealtimeNotificationSubject = PublishSubject.create();
+            }
+
+            // led color
+            if (characteristicId.equals(Profile.UUID_CHAR_CONTROL_POINT)) {
+                Log.d(TAG, "Led color failed");
+                mLedColorSubject.onError(new Exception("Changing LED color failed"));
+                mLedColorSubject = PublishSubject.create();
+            }
+
+            // user info
+            if (characteristicId.equals(Profile.UUID_CHAR_USER_INFO)) {
+                Log.d(TAG, "User info failed");
+                mUserInfoSubject.onError(new Exception("Setting User info failed"));
+                mUserInfoSubject = PublishSubject.create();
+            }
+        }
+
+        // vibration service
+        if (serviceId.equals(Profile.UUID_SERVICE_VIBRATION)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_VIBRATION)) {
+                Log.d(TAG, "Enable/disable vibration failed");
+                mStopVibrationSubject.onError(new Exception("Enable/disable vibration failed"));
+                mStopVibrationSubject = PublishSubject.create();
+            }
+        }
+
+        // heart rate
+        if (serviceId.equals(Profile.UUID_SERVICE_HEARTRATE)) {
+            if (characteristicId.equals(Profile.UUID_CHAR_HEARTRATE)) {
+                Log.d(TAG, "Reading heartrate failed");
+                mHeartRateSubject.onError(new Exception("Reading heartrate failed"));
+                mHeartRateSubject = PublishSubject.create();
+            }
+        }
+    }
+
+    @Override
     public void onFail(int errorCode, String msg) {
-        // TODO
+        Log.d(TAG, String.format("onFail: errorCode %d, message %s", errorCode, msg));
+        switch (errorCode) {
+            case BluetoothIO.ERROR_CONNECTION_FAILED:
+                mConnectionSubject.onError(new Exception("Establishing connection failed"));
+                mConnectionSubject = PublishSubject.create();
+                break;
+            case BluetoothIO.ERROR_READ_RSSI_FAILED:
+                mRssiSubject.onError(new Exception("Reading RSSI failed"));
+                mRssiSubject = PublishSubject.create();
+                break;
+        }
     }
 }

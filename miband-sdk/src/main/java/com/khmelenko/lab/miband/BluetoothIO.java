@@ -25,7 +25,8 @@ final class BluetoothIO extends BluetoothGattCallback {
 
     private static final String TAG = "BluetoothIO";
 
-    public static final int STATUS_ERROR = -1;
+    static final int ERROR_CONNECTION_FAILED = 1;
+    static final int ERROR_READ_RSSI_FAILED = 2;
 
     private BluetoothGatt mBluetoothGatt;
 
@@ -68,50 +69,50 @@ final class BluetoothIO extends BluetoothGattCallback {
     /**
      * Writes data to the service
      *
-     * @param serviceUUID        Service UUID
-     * @param characteristicUUID Characteristic UUID
-     * @param value              Value to write
+     * @param serviceUUID      Service UUID
+     * @param characteristicId Characteristic UUID
+     * @param value            Value to write
      */
-    public void writeCharacteristic(UUID serviceUUID, UUID characteristicUUID, byte[] value) {
+    public void writeCharacteristic(UUID serviceUUID, UUID characteristicId, byte[] value) {
         checkConnectionState();
 
         BluetoothGattService service = mBluetoothGatt.getService(serviceUUID);
         if (service != null) {
-            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicUUID);
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicId);
             if (characteristic != null) {
                 characteristic.setValue(value);
                 if (!mBluetoothGatt.writeCharacteristic(characteristic)) {
-                    notifyWithFail(STATUS_ERROR, "BluetoothGatt write operation failed");
+                    notifyWithFail(serviceUUID, characteristicId, "BluetoothGatt write operation failed");
                 }
             } else {
-                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + characteristicUUID + " does not exist");
+                notifyWithFail(serviceUUID, characteristicId, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
             }
         } else {
-            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
+            notifyWithFail(serviceUUID, characteristicId, "BluetoothGattService " + serviceUUID + " does not exist");
         }
     }
 
     /**
      * Reads data from the service
      *
-     * @param serviceUUID Service UUID
-     * @param uuid        Characteristic UUID
+     * @param serviceUUID      Service UUID
+     * @param characteristicId Characteristic UUID
      */
-    public void readCharacteristic(UUID serviceUUID, UUID uuid) {
+    public void readCharacteristic(UUID serviceUUID, UUID characteristicId) {
         checkConnectionState();
 
         BluetoothGattService service = mBluetoothGatt.getService(serviceUUID);
         if (service != null) {
-            BluetoothGattCharacteristic characteristic = service.getCharacteristic(uuid);
+            BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicId);
             if (characteristic != null) {
                 if (!mBluetoothGatt.readCharacteristic(characteristic)) {
-                    notifyWithFail(STATUS_ERROR, "BluetoothGatt read operation failed");
+                    notifyWithFail(serviceUUID, characteristicId, "BluetoothGatt read operation failed");
                 }
             } else {
-                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + uuid + " does not exist");
+                notifyWithFail(serviceUUID, characteristicId, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
             }
         } else {
-            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
+            notifyWithFail(serviceUUID, characteristicId, "BluetoothGattService " + serviceUUID + " does not exist");
         }
     }
 
@@ -122,7 +123,7 @@ final class BluetoothIO extends BluetoothGattCallback {
         checkConnectionState();
 
         if (!mBluetoothGatt.readRemoteRssi()) {
-            notifyWithFail(STATUS_ERROR, "Request RSSI value failed");
+            notifyWithFail(ERROR_READ_RSSI_FAILED, "Request RSSI value failed");
         }
     }
 
@@ -146,10 +147,10 @@ final class BluetoothIO extends BluetoothGattCallback {
                 mBluetoothGatt.writeDescriptor(descriptor);
                 mNotifyListeners.put(characteristicId, listener);
             } else {
-                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
+                notifyWithFail(serviceUUID, characteristicId, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
             }
         } else {
-            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
+            notifyWithFail(serviceUUID, characteristicId, "BluetoothGattService " + serviceUUID + " does not exist");
         }
     }
 
@@ -172,10 +173,10 @@ final class BluetoothIO extends BluetoothGattCallback {
                 mBluetoothGatt.writeDescriptor(descriptor);
                 mNotifyListeners.remove(characteristicId);
             } else {
-                notifyWithFail(STATUS_ERROR, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
+                notifyWithFail(serviceUUID, characteristicId, "BluetoothGattCharacteristic " + characteristicId + " does not exist");
             }
         } else {
-            notifyWithFail(STATUS_ERROR, "BluetoothGattService " + serviceUUID + " does not exist");
+            notifyWithFail(serviceUUID, characteristicId, "BluetoothGattService " + serviceUUID + " does not exist");
         }
     }
 
@@ -203,7 +204,7 @@ final class BluetoothIO extends BluetoothGattCallback {
                 mBluetoothListener.onConnectionEstablished();
             }
         } else {
-            notifyWithFail(status, "onServicesDiscovered fail");
+            notifyWithFail(ERROR_CONNECTION_FAILED, "onServicesDiscovered fail: " + String.valueOf(status));
         }
     }
 
@@ -213,7 +214,9 @@ final class BluetoothIO extends BluetoothGattCallback {
         if (BluetoothGatt.GATT_SUCCESS == status) {
             notifyWithResult(characteristic);
         } else {
-            notifyWithFail(status, "onCharacteristicRead fail");
+            UUID serviceId = characteristic.getService().getUuid();
+            UUID characteristicId = characteristic.getUuid();
+            notifyWithFail(serviceId, characteristicId, "onCharacteristicRead fail");
         }
     }
 
@@ -223,7 +226,9 @@ final class BluetoothIO extends BluetoothGattCallback {
         if (BluetoothGatt.GATT_SUCCESS == status) {
             notifyWithResult(characteristic);
         } else {
-            notifyWithFail(status, "onCharacteristicWrite fail");
+            UUID serviceId = characteristic.getService().getUuid();
+            UUID characteristicId = characteristic.getUuid();
+            notifyWithFail(serviceId, characteristicId, "onCharacteristicWrite fail");
         }
     }
 
@@ -242,7 +247,7 @@ final class BluetoothIO extends BluetoothGattCallback {
             Log.d(TAG, "onReadRemoteRssi:" + rssi);
             notifyWithResult(rssi);
         } else {
-            notifyWithFail(status, "onCharacteristicRead fail");
+            notifyWithFail(ERROR_READ_RSSI_FAILED, "onCharacteristicRead fail: " + String.valueOf(status));
         }
     }
 
@@ -289,11 +294,24 @@ final class BluetoothIO extends BluetoothGattCallback {
     /**
      * Notifies with success result
      *
-     * @param data     Result data
+     * @param data Result data
      */
     private void notifyWithResult(int data) {
         if (mBluetoothListener != null) {
             mBluetoothListener.onResultRssi(data);
+        }
+    }
+
+    /**
+     * Notifies with failed result
+     *
+     * @param serviceUUID      Service UUID
+     * @param characteristicId Characteristic ID
+     * @param msg              Message
+     */
+    private void notifyWithFail(UUID serviceUUID, UUID characteristicId, String msg) {
+        if (mBluetoothListener != null) {
+            mBluetoothListener.onFail(serviceUUID, characteristicId, msg);
         }
     }
 
@@ -308,5 +326,4 @@ final class BluetoothIO extends BluetoothGattCallback {
             mBluetoothListener.onFail(errorCode, msg);
         }
     }
-
 }
