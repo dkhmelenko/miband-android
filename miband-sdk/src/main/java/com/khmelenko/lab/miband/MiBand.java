@@ -43,6 +43,7 @@ public final class MiBand implements BluetoothListener {
     private PublishSubject<Integer> mRssiSubject;
     private PublishSubject<BatteryInfo> mBatteryInfoSubject;
     private PublishSubject<Void> mPairSubject;
+    private boolean mPairRequested;
     private PublishSubject<Void> mStartVibrationSubject;
     private PublishSubject<Void> mStopVibrationSubject;
     private PublishSubject<Boolean> mSensorNotificationSubject;
@@ -161,8 +162,9 @@ public final class MiBand implements BluetoothListener {
      */
     public Observable<Void> pair() {
         return Observable.create(subscriber -> {
+            mPairRequested = true;
             mPairSubject.subscribe(new ObserverWrapper<>(subscriber));
-            // TODO mBluetoothIO.writeAndRead(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR, ioCallback);
+            mBluetoothIO.writeCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR, Protocol.PAIR);
         });
     }
 
@@ -398,6 +400,18 @@ public final class MiBand implements BluetoothListener {
         UUID serviceId = data.getService().getUuid();
         UUID characteristicId = data.getUuid();
         if (serviceId.equals(Profile.UUID_SERVICE_MILI)) {
+
+            // pair
+            if (characteristicId.equals(Profile.UUID_CHAR_PAIR)) {
+                Log.d(TAG, "pair requested " + String.valueOf(mPairRequested));
+                if (mPairRequested) {
+                    mBluetoothIO.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR);
+                    mPairRequested = false;
+                } else {
+                    mPairSubject.onComplete();
+                }
+                mPairSubject = PublishSubject.create();
+            }
 
             // Battery info
             if (characteristicId.equals(Profile.UUID_CHAR_BATTERY)) {
