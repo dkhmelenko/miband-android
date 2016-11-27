@@ -5,6 +5,9 @@ android {
     compileSdkVersion 24
     buildToolsVersion "24.0.2"
 
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+    }
     defaultConfig {
         applicationId "com.khmelenko.lab.mibanddemo"
         minSdkVersion 21
