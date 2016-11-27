@@ -1,6 +1,5 @@
 package com.khmelenko.lab.mibanddemo;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
@@ -36,7 +35,7 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.scan);
+        setContentView(R.layout.scan_activity);
 
         mMiBand = new MiBand(this);
 

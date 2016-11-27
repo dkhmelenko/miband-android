@@ -5,82 +5,102 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/action_connect"
+            android:text="Connect"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_pair"
+            android:text="Pair"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_show_services"
+            android:text="Show services"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_read_rssi"
+            android:text="Read RSSI"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_battery_info"
+            android:text="Battery info"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_set_user_info"
+            android:text="Set user info"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_set_heart_rate_notify_listener"
+            android:text="Set heartrate listener"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_start_heart_rate_scan"
+            android:text="Start heartrate scan"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_start_vibro_with_led"
+            android:text="Start vibro with LED"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_start_vibro"
+            android:text="Start vibro"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_start_vibro_with_led_time"
+            android:text="Start vibro with LED/time"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_stop_vibro"
+            android:text="Stop vibro"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_set_notify_listener"
+            android:text="Set notify listener"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_set_realtime_notify_listener"
+            android:text="Set realtime notify listener"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_enable_realtime_steps_notify"
+            android:text="Enable realtime steps"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_disable_realtime_steps_notify"
+            android:text="Disable realtime steps"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_set_sensor_data_notify_listener"
+            android:text="Set sensor data listener"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_enable_sensor_data_notify"
+            android:text="Enable sensor data notify"
             style="@style/Button"/>
 
         <Button
             android:id="@+id/action_disable_sensor_data_notify"
+            android:text="Disable sensor data notify"
             style="@style/Button"/>
 
     </LinearLayout>

@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
@@ -27,9 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private MiBand mMiBand;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
         mMiBand = new MiBand(this);
     }
