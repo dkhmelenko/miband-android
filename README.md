@@ -7,7 +7,7 @@ The idea came from [this project](https://github.com/pangliang/miband-sdk-androi
 # Contribution
 In case you have ideas or found an issue, don't hesitate to create pull request or an issue.
 
-**IMPORTANT: Use this SDK on your risk, developer of this SDK is NOT responsible for any unpredictable result** <br/> <br/>
+**IMPORTANT: Use this SDK only on your own risk, developer of this SDK is NOT responsible for any unpredictable result.** <br/> <br/>
 **NOTE:** This project is in active development phase, so probably some of the methods do not work as expected. 
 
 # License
