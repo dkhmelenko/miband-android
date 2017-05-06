@@ -8,7 +8,7 @@ The idea came from [this project](https://github.com/pangliang/miband-sdk-androi
 In case you have ideas or found an issue, don't hesitate to create pull request or an issue.
 
 **IMPORTANT: Use this SDK only on your own risk, developer of this SDK is NOT responsible for any unpredictable result.** <br/> <br/>
-**NOTE:** This project is in active development phase, so probably some of the methods do not work as expected. 
+**NOTE:** This project is paused so far, because of undocumented API of Xiaomi bands. Feel free to create PR or give any suggestion for improvement. 
 
 # License
 
