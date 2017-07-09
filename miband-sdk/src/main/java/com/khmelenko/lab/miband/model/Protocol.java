@@ -1,5 +1,10 @@
 package com.khmelenko.lab.miband.model;
 
+/**
+ * Defines values for accessing data and controlling band
+ *
+ * @author Dmytro Khmelenko
+ */
 public final class Protocol {
 
     public static final byte[] PAIR = {2};

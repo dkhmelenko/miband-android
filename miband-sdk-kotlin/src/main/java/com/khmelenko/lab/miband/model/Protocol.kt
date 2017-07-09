@@ -1,5 +1,10 @@
 package com.khmelenko.lab.miband.model
 
+/**
+ * Defines values for accessing data and controlling band
+ *
+ * @author Dmytro Khmelenko
+ */
 object Protocol {
 
     val PAIR = byteArrayOf(2)

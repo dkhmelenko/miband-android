@@ -2,6 +2,11 @@ package com.khmelenko.lab.miband.model;
 
 import java.util.UUID;
 
+/**
+ * Defines keys for services, descriptors and characteristics
+ *
+ * @author Dmytro Khmelenko
+ */
 public class Profile {
 
     // SERVICES
