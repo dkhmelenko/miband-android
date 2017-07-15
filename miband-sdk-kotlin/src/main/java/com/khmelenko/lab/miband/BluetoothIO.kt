@@ -17,12 +17,14 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
 
     private val TAG = "BluetoothIO"
 
-    val ERROR_CONNECTION_FAILED = 1
-    val ERROR_READ_RSSI_FAILED = 2
+    companion object {
+        val ERROR_CONNECTION_FAILED = 1
+        val ERROR_READ_RSSI_FAILED = 2
+    }
 
     private var mBluetoothGatt: BluetoothGatt? = null
 
-    private var mNotifyListeners: HashMap<UUID, NotifyListener> = HashMap<UUID, NotifyListener>()
+    private var mNotifyListeners: HashMap<UUID, (ByteArray) -> Unit> = HashMap<UUID, (ByteArray) -> Unit>()
 
     /**
      * Connects to the Bluetooth device
@@ -119,7 +121,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      * *
      * @param listener         New listener
      */
-    fun setNotifyListener(serviceUUID: UUID, characteristicId: UUID, listener: NotifyListener) {
+    fun setNotifyListener(serviceUUID: UUID, characteristicId: UUID, listener: (ByteArray) -> Unit) {
         checkConnectionState()
 
         val service = mBluetoothGatt?.getService(serviceUUID)
@@ -213,7 +215,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
         super.onCharacteristicChanged(gatt, characteristic)
         if (mNotifyListeners.containsKey(characteristic.uuid)) {
-            mNotifyListeners[characteristic.uuid]?.onNotify(characteristic.value)
+            mNotifyListeners[characteristic.uuid]?.invoke(characteristic.value)
         }
     }
 
