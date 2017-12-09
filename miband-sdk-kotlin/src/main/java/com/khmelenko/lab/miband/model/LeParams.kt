@@ -7,28 +7,28 @@ package com.khmelenko.lab.miband.model
  */
 class LeParams {
 
-    var mConnIntMin: Int = 0
-    var mConnIntMax: Int = 0
-    var mConnInt: Int = 0
+    var connIntMin: Int = 0
+    var connIntMax: Int = 0
+    var connInt: Int = 0
 
-    var mLatency: Int = 0
-    var mTimeout: Int = 0
-    var mAdvInt: Int = 0
+    var latency: Int = 0
+    var timeout: Int = 0
+    var advInt: Int = 0
 
     companion object {
         fun fromByte(data: ByteArray): LeParams {
             var params = LeParams()
-            params.mConnIntMax = 0xffff and (0xff and data[0].toInt() or (0xff and data[1].toInt() shl 8))
-            params.mConnIntMax = 0xffff and (0xff and data[2].toInt() or (0xff and data[3].toInt() shl 8))
-            params.mLatency = 0xffff and (0xff and data[4].toInt() or (0xff and data[5].toInt() shl 8))
-            params.mTimeout = 0xffff and (0xff and data[6].toInt() or (0xff and data[7].toInt() shl 8))
-            params.mConnInt = 0xffff and (0xff and data[8].toInt() or (0xff and data[9].toInt() shl 8))
-            params.mAdvInt = 0xffff and (0xff and data[10].toInt() or (0xff and data[11].toInt() shl 8))
+            params.connIntMax = 0xffff and (0xff and data[0].toInt() or (0xff and data[1].toInt() shl 8))
+            params.connIntMax = 0xffff and (0xff and data[2].toInt() or (0xff and data[3].toInt() shl 8))
+            params.latency = 0xffff and (0xff and data[4].toInt() or (0xff and data[5].toInt() shl 8))
+            params.timeout = 0xffff and (0xff and data[6].toInt() or (0xff and data[7].toInt() shl 8))
+            params.connInt = 0xffff and (0xff and data[8].toInt() or (0xff and data[9].toInt() shl 8))
+            params.advInt = 0xffff and (0xff and data[10].toInt() or (0xff and data[11].toInt() shl 8))
 
-            params.mConnIntMin = (params.mConnIntMin * 1.25).toInt()
-            params.mConnIntMax = (params.mConnIntMax * 1.25).toInt()
-            params.mAdvInt = (params.mAdvInt * 0.625).toInt()
-            params.mTimeout *= 10
+            params.connIntMin = (params.connIntMin * 1.25).toInt()
+            params.connIntMax = (params.connIntMax * 1.25).toInt()
+            params.advInt = (params.advInt * 0.625).toInt()
+            params.timeout *= 10
 
             return params;
         }

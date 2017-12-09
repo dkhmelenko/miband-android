@@ -3,7 +3,6 @@ package com.khmelenko.lab.miband
 import android.bluetooth.*
 import android.content.Context
 import android.util.Log
-import com.khmelenko.lab.miband.listeners.NotifyListener
 import com.khmelenko.lab.miband.model.Profile
 import java.util.*
 import kotlin.collections.HashMap
@@ -13,7 +12,7 @@ import kotlin.collections.HashMap
  *
  * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
  */
-internal class BluetoothIO(private val mListener: BluetoothListener?) : BluetoothGattCallback() {
+internal class BluetoothIO(private val listener: BluetoothListener?) : BluetoothGattCallback() {
 
     private val TAG = "BluetoothIO"
 
@@ -22,9 +21,9 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
         val ERROR_READ_RSSI_FAILED = 2
     }
 
-    private var mBluetoothGatt: BluetoothGatt? = null
+    private var bluetoothGatt: BluetoothGatt? = null
 
-    private var mNotifyListeners: HashMap<UUID, (ByteArray) -> Unit> = HashMap<UUID, (ByteArray) -> Unit>()
+    private var notifyListeners: HashMap<UUID, (ByteArray) -> Unit> = HashMap<UUID, (ByteArray) -> Unit>()
 
     /**
      * Connects to the Bluetooth device
@@ -43,7 +42,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      * @return Connected device or null
      */
     fun getConnectedDevice(): BluetoothDevice? {
-        return mBluetoothGatt?.device
+        return bluetoothGatt?.device
     }
 
     /**
@@ -58,12 +57,12 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
     fun writeCharacteristic(serviceUUID: UUID, characteristicId: UUID, value: ByteArray) {
         checkConnectionState()
 
-        val service = mBluetoothGatt?.getService(serviceUUID)
+        val service = bluetoothGatt?.getService(serviceUUID)
         if (service != null) {
             val characteristic = service.getCharacteristic(characteristicId)
             if (characteristic != null) {
                 characteristic.value = value
-                val writeResult = mBluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                val writeResult = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
                 if (!writeResult) {
                     notifyWithFail(serviceUUID, characteristicId, "BluetoothGatt write operation failed")
                 }
@@ -85,11 +84,11 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
     fun readCharacteristic(serviceUUID: UUID, characteristicId: UUID) {
         checkConnectionState()
 
-        val service = mBluetoothGatt?.getService(serviceUUID)
+        val service = bluetoothGatt?.getService(serviceUUID)
         if (service != null) {
             val characteristic = service.getCharacteristic(characteristicId)
             if (characteristic != null) {
-                val readResult = mBluetoothGatt?.readCharacteristic(characteristic) ?: false
+                val readResult = bluetoothGatt?.readCharacteristic(characteristic) ?: false
                 if (readResult) {
                     notifyWithFail(serviceUUID, characteristicId, "BluetoothGatt read operation failed")
                 }
@@ -106,7 +105,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      */
     fun readRssi() {
         checkConnectionState()
-        val readResult = mBluetoothGatt?.readRemoteRssi() ?: false
+        val readResult = bluetoothGatt?.readRemoteRssi() ?: false
         if (!readResult) {
             notifyWithFail(ERROR_READ_RSSI_FAILED, "Request RSSI value failed")
         }
@@ -124,15 +123,15 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
     fun setNotifyListener(serviceUUID: UUID, characteristicId: UUID, listener: (ByteArray) -> Unit) {
         checkConnectionState()
 
-        val service = mBluetoothGatt?.getService(serviceUUID)
+        val service = bluetoothGatt?.getService(serviceUUID)
         if (service != null) {
             val characteristic = service.getCharacteristic(characteristicId)
             if (characteristic != null) {
-                mBluetoothGatt?.setCharacteristicNotification(characteristic, true)
+                bluetoothGatt?.setCharacteristicNotification(characteristic, true)
                 val descriptor = characteristic.getDescriptor(Profile.UUID_DESCRIPTOR_UPDATE_NOTIFICATION)
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                mBluetoothGatt?.writeDescriptor(descriptor)
-                mNotifyListeners.put(characteristicId, listener)
+                bluetoothGatt?.writeDescriptor(descriptor)
+                notifyListeners.put(characteristicId, listener)
             } else {
                 notifyWithFail(serviceUUID, characteristicId, "BluetoothGattCharacteristic $characteristicId does not exist")
             }
@@ -151,15 +150,15 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
     fun removeNotifyListener(serviceUUID: UUID, characteristicId: UUID) {
         checkConnectionState()
 
-        val service = mBluetoothGatt?.getService(serviceUUID)
+        val service = bluetoothGatt?.getService(serviceUUID)
         if (service != null) {
             val characteristic = service.getCharacteristic(characteristicId)
             if (characteristic != null) {
-                mBluetoothGatt?.setCharacteristicNotification(characteristic, false)
+                bluetoothGatt?.setCharacteristicNotification(characteristic, false)
                 val descriptor = characteristic.getDescriptor(Profile.UUID_DESCRIPTOR_UPDATE_NOTIFICATION)
                 descriptor.value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
-                mBluetoothGatt?.writeDescriptor(descriptor)
-                mNotifyListeners.remove(characteristicId)
+                bluetoothGatt?.writeDescriptor(descriptor)
+                notifyListeners.remove(characteristicId)
             } else {
                 notifyWithFail(serviceUUID, characteristicId, "BluetoothGattCharacteristic $characteristicId does not exist")
             }
@@ -175,16 +174,16 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
             gatt.discoverServices()
         } else {
             gatt.close()
-            mListener?.onDisconnected()
+            listener?.onDisconnected()
         }
     }
 
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
         super.onServicesDiscovered(gatt, status)
         if (status == BluetoothGatt.GATT_SUCCESS) {
-            mBluetoothGatt = gatt
+            bluetoothGatt = gatt
             checkAvailableServices()
-            mListener?.onConnectionEstablished()
+            listener?.onConnectionEstablished()
         } else {
             notifyWithFail(ERROR_CONNECTION_FAILED, "onServicesDiscovered fail: " + status.toString())
         }
@@ -214,8 +213,8 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
 
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
         super.onCharacteristicChanged(gatt, characteristic)
-        if (mNotifyListeners.containsKey(characteristic.uuid)) {
-            mNotifyListeners[characteristic.uuid]?.invoke(characteristic.value)
+        if (notifyListeners.containsKey(characteristic.uuid)) {
+            notifyListeners[characteristic.uuid]?.invoke(characteristic.value)
         }
     }
 
@@ -236,7 +235,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      */
     @Throws(IllegalStateException::class)
     private fun checkConnectionState() {
-        if (mBluetoothGatt == null) {
+        if (bluetoothGatt == null) {
             Log.e(TAG, "Connect device first")
             throw IllegalStateException("Device is not connected")
         }
@@ -246,7 +245,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      * Checks available services, characteristics and descriptors
      */
     private fun checkAvailableServices() {
-        for (service in mBluetoothGatt?.services.orEmpty()) {
+        for (service in bluetoothGatt?.services.orEmpty()) {
             Log.d(TAG, "onServicesDiscovered:" + service.uuid)
 
             for (characteristic in service.characteristics) {
@@ -266,7 +265,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      */
     private fun notifyWithResult(data: BluetoothGattCharacteristic?) {
         if (data != null) {
-            mListener?.onResult(data)
+            listener?.onResult(data)
         }
     }
 
@@ -276,7 +275,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      * @param data Result data
      */
     private fun notifyWithResult(data: Int) {
-        mListener?.onResultRssi(data)
+        listener?.onResultRssi(data)
     }
 
     /**
@@ -289,7 +288,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      * @param msg              Message
      */
     private fun notifyWithFail(serviceUUID: UUID, characteristicId: UUID, msg: String) {
-        mListener?.onFail(serviceUUID, characteristicId, msg)
+        listener?.onFail(serviceUUID, characteristicId, msg)
     }
 
     /**
@@ -300,7 +299,7 @@ internal class BluetoothIO(private val mListener: BluetoothListener?) : Bluetoot
      * @param msg       Message
      */
     private fun notifyWithFail(errorCode: Int, msg: String) {
-        mListener?.onFail(errorCode, msg)
+        listener?.onFail(errorCode, msg)
     }
 
 }

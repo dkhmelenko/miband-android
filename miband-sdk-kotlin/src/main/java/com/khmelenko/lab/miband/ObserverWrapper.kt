@@ -9,22 +9,22 @@ import io.reactivex.disposables.Disposable
 
  * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
  */
-internal class ObserverWrapper<T>(private val mEmitter: Emitter<T>) : Observer<T> {
+internal class ObserverWrapper<T>(private val emitter: Emitter<T>) : Observer<T> {
 
     override fun onSubscribe(d: Disposable) {
         // do nothing
     }
 
     override fun onNext(value: T) {
-        mEmitter.onNext(value)
+        emitter.onNext(value)
     }
 
     override fun onError(e: Throwable) {
-        mEmitter.onError(e)
+        emitter.onError(e)
     }
 
     override fun onComplete() {
-        mEmitter.onComplete()
+        emitter.onComplete()
     }
 
 
