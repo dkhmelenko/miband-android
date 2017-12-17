@@ -9,40 +9,13 @@ import java.nio.charset.Charset
 
  * @author Dmytro Khmelenko
  */
-class UserInfo {
-
-
-    var uid: Int = 0
-        private set
-
-    var gender: Byte = 0
-        private set
-
-    var age: Byte = 0
-        private set
-
-    private var mHeight: Byte = 0
-    private var mWeight: Byte = 0
-
-    var alias = ""
-        private set
-
-    var type: Byte = 0
-        private set
-
-    private constructor() {
-
-    }
-
-    constructor(uid: Int, gender: Int, age: Int, height: Int, weight: Int, alias: String, type: Int) {
-        this.uid = uid
-        this.gender = gender.toByte()
-        this.age = age.toByte()
-        mHeight = (height and 0xFF).toByte()
-        mWeight = weight.toByte()
-        this.alias = alias
-        this.type = type.toByte()
-    }
+class UserInfo(val uid: Int,
+               val gender: Byte,
+               val age: Byte,
+               val height: Byte,
+               val weight: Byte,
+               val alias: String,
+               val type: Byte) {
 
     fun getBytes(mBTAddress: String): ByteArray {
         var aliasBytes: ByteArray
@@ -59,8 +32,8 @@ class UserInfo {
         bf.put((uid shr 24 and 0xff).toByte())
         bf.put(this.gender)
         bf.put(this.age)
-        bf.put(this.mHeight)
-        bf.put(this.mWeight)
+        bf.put(this.height)
+        bf.put(this.weight)
         bf.put(this.type)
         bf.put(4.toByte())
         bf.put(0.toByte())
@@ -111,22 +84,6 @@ class UserInfo {
                 ",type:" + type
     }
 
-    /**
-     * Gets height in cm
-
-     * @return Height in cm
-     */
-    val height: Int
-        get() = mHeight.toInt() and 0xFF
-
-    /**
-     * Gets weight in kg
-
-     * @return Weight in kg
-     */
-    val weight: Int
-        get() = mWeight.toInt() and 0xFF
-
     companion object {
 
         /**
@@ -140,21 +97,20 @@ class UserInfo {
             if (data.size < 20) {
                 return null
             }
-            val info = UserInfo()
 
-            info.uid = data[3].toInt() shl 24 or (data[2].toInt() and 0xFF shl 16) or (data[1].toInt() and 0xFF shl 8) or (data[0].toInt() and 0xFF)
-            info.gender = data[4]
-            info.age = data[5]
-            info.mHeight = data[6]
-            info.mWeight = data[7]
-            info.type = data[8]
+            val uid = data[3].toInt() shl 24 or (data[2].toInt() and 0xFF shl 16) or (data[1].toInt() and 0xFF shl 8) or (data[0].toInt() and 0xFF)
+            val gender = data[4]
+            val age = data[5]
+            val height = data[6]
+            val weight = data[7]
+            val type = data[8]
+            var alias = ""
             try {
-                info.alias = String(data, 9, 8, Charset.forName("UTF-8"))
+                alias = String(data, 9, 8, Charset.forName("UTF-8"))
             } catch (e: UnsupportedEncodingException) {
-                info.alias = ""
             }
 
-            return info
+            return UserInfo(uid, gender, age, height, weight, alias, type)
         }
     }
 }
