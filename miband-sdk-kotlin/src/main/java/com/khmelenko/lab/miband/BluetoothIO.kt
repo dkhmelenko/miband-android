@@ -7,6 +7,9 @@ import com.khmelenko.lab.miband.model.Profile
 import java.util.*
 import kotlin.collections.HashMap
 
+const val ERROR_CONNECTION_FAILED = 1
+const val ERROR_READ_RSSI_FAILED = 2
+
 /**
  * Defines Bluetooth communication
  *
@@ -15,11 +18,6 @@ import kotlin.collections.HashMap
 internal class BluetoothIO(private val listener: BluetoothListener?) : BluetoothGattCallback() {
 
     private val TAG = "BluetoothIO"
-
-    companion object {
-        val ERROR_CONNECTION_FAILED = 1
-        val ERROR_READ_RSSI_FAILED = 2
-    }
 
     private var bluetoothGatt: BluetoothGatt? = null
 

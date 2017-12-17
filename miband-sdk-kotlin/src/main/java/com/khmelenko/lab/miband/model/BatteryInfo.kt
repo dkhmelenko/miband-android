@@ -77,11 +77,11 @@ class BatteryInfo private constructor() {
          * *
          * @return Battery info or null, if data are invalid
          */
-        fun fromByteData(data: ByteArray): BatteryInfo? {
-            if (data.size < 10) {
-                return null
-            }
+        fun fromByteData(data: ByteArray): BatteryInfo {
             val info = BatteryInfo()
+            if (data.size < 10) {
+                return info
+            }
 
             info.level = data[0].toInt()
             info.status = Status.fromByte(data[9])

@@ -22,6 +22,8 @@ import java.util.*
  */
 class MiBand(private val context: Context) : BluetoothListener {
 
+    private val TAG = "miband-android"
+
     private val bluetoothIo: BluetoothIO = BluetoothIO(this)
 
     private var connectionSubject: PublishSubject<Boolean> = PublishSubject.create()
@@ -529,18 +531,14 @@ class MiBand(private val context: Context) : BluetoothListener {
     override fun onFail(errorCode: Int, msg: String) {
         Log.d(TAG, String.format("onFail: errorCode %d, message %s", errorCode, msg))
         when (errorCode) {
-            BluetoothIO.ERROR_CONNECTION_FAILED -> {
+            ERROR_CONNECTION_FAILED -> {
                 connectionSubject.onError(Exception("Establishing connection failed"))
                 connectionSubject = PublishSubject.create()
             }
-            BluetoothIO.ERROR_READ_RSSI_FAILED -> {
+            ERROR_READ_RSSI_FAILED -> {
                 rssiSubject.onError(Exception("Reading RSSI failed"))
                 rssiSubject = PublishSubject.create()
             }
         }
-    }
-
-    companion object {
-        private val TAG = "miband-android"
     }
 }
