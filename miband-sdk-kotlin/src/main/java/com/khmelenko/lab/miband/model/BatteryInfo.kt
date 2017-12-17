@@ -1,19 +1,20 @@
 package com.khmelenko.lab.miband.model
 
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
 
 /**
  * Battery info
 
  * @author Dmytro Khmelenko
  */
-class BatteryInfo private constructor() {
+class BatteryInfo private constructor(val level: Int,
+                                      val cycles: Int,
+                                      val status: Status?,
+                                      val lastChargedDate: Calendar = Calendar.getInstance()) {
 
     internal enum class Status {
         UNKNOWN, LOW, FULL, CHARGING, NOT_CHARGING;
-
 
         companion object {
 
@@ -30,38 +31,9 @@ class BatteryInfo private constructor() {
         }
     }
 
-    /**
-     * Gets battery level
-
-     * @return Battery level
-     */
-    var level: Int = 0
-        private set
-    /**
-     * Gets cycles
-
-     * @return Cycles
-     */
-    var cycles: Int = 0
-        private set
-    /**
-     * Gets battery status
-
-     * @return Battery status
-     */
-    internal var status: Status? = null
-        private set
-    /**
-     * Gets last charging date
-
-     * @return Last charging date
-     */
-    var lastChargedDate: Calendar? = null
-        private set
-
     override fun toString(): String {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", Locale.getDefault())
-        val formattedDate = formatter.format(lastChargedDate?.time)
+        val formattedDate = formatter.format(lastChargedDate.time)
         return "cycles:" + cycles +
                 ",level:" + level +
                 ",status:" + status +
@@ -75,28 +47,23 @@ class BatteryInfo private constructor() {
 
          * @param data Byte data
          * *
-         * @return Battery info or null, if data are invalid
+         * @return Battery info
          */
         fun fromByteData(data: ByteArray): BatteryInfo {
-            val info = BatteryInfo()
-            if (data.size < 10) {
-                return info
-            }
+            val level = data[0].toInt()
+            val status = Status.fromByte(data[9])
+            val cycles = 0xffff and (0xff and data[7].toInt() or (0xff and data[8].toInt() shl 8))
 
-            info.level = data[0].toInt()
-            info.status = Status.fromByte(data[9])
-            info.cycles = 0xffff and (0xff and data[7].toInt() or (0xff and data[8].toInt() shl 8))
-            info.lastChargedDate = Calendar.getInstance()
+            val lastChargeDay = Calendar.getInstance()
+            lastChargeDay.set(Calendar.YEAR, data[1] + 2000)
+            lastChargeDay.set(Calendar.MONTH, data[2].toInt())
+            lastChargeDay.set(Calendar.DATE, data[3].toInt())
 
-            info.lastChargedDate!!.set(Calendar.YEAR, data[1] + 2000)
-            info.lastChargedDate!!.set(Calendar.MONTH, data[2].toInt())
-            info.lastChargedDate!!.set(Calendar.DATE, data[3].toInt())
+            lastChargeDay.set(Calendar.HOUR_OF_DAY, data[4].toInt())
+            lastChargeDay.set(Calendar.MINUTE, data[5].toInt())
+            lastChargeDay.set(Calendar.SECOND, data[6].toInt())
 
-            info.lastChargedDate!!.set(Calendar.HOUR_OF_DAY, data[4].toInt())
-            info.lastChargedDate!!.set(Calendar.MINUTE, data[5].toInt())
-            info.lastChargedDate!!.set(Calendar.SECOND, data[6].toInt())
-
-            return info
+            return BatteryInfo(level, cycles, status, lastChargeDay)
         }
     }
 
