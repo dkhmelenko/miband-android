@@ -6,13 +6,13 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
-import android.util.Log
 import com.khmelenko.lab.miband.listeners.HeartRateNotifyListener
 import com.khmelenko.lab.miband.listeners.RealtimeStepsNotifyListener
 import com.khmelenko.lab.miband.model.*
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.subjects.PublishSubject
+import timber.log.Timber
 import java.util.*
 
 /**
@@ -55,11 +55,11 @@ class MiBand(private val context: Context) : BluetoothListener {
                 if (scanner != null) {
                     scanner.startScan(getScanCallback(subscriber))
                 } else {
-                    Log.e(TAG, "BluetoothLeScanner is null")
+                    Timber.d("BluetoothLeScanner is null")
                     subscriber.onError(NullPointerException("BluetoothLeScanner is null"))
                 }
             } else {
-                Log.e(TAG, "BluetoothAdapter is null")
+                Timber.d("BluetoothAdapter is null")
                 subscriber.onError(NullPointerException("BluetoothLeScanner is null"))
             }
         }
@@ -78,11 +78,11 @@ class MiBand(private val context: Context) : BluetoothListener {
                 if (scanner != null) {
                     scanner.stopScan(getScanCallback(subscriber))
                 } else {
-                    Log.e(TAG, "BluetoothLeScanner is null")
+                    Timber.d("BluetoothLeScanner is null")
                     subscriber.onError(NullPointerException("BluetoothLeScanner is null"))
                 }
             } else {
-                Log.e(TAG, "BluetoothAdapter is null")
+                Timber.d("BluetoothAdapter is null")
                 subscriber.onError(NullPointerException("BluetoothLeScanner is null"))
             }
         }
@@ -239,7 +239,7 @@ class MiBand(private val context: Context) : BluetoothListener {
      */
     fun setRealtimeStepsNotifyListener(listener: RealtimeStepsNotifyListener) {
         bluetoothIo.setNotifyListener(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_REALTIME_STEPS, { data: ByteArray ->
-            Log.d(TAG, Arrays.toString(data))
+            Timber.d(Arrays.toString(data))
             if (data.size == 4) {
                 val steps = data[3].toInt() shl 24 or (data[2].toInt() and 0xFF shl 16) or
                         (data[1].toInt() and 0xFF shl 8) or (data[0].toInt() and 0xFF)
@@ -309,7 +309,7 @@ class MiBand(private val context: Context) : BluetoothListener {
      */
     fun setHeartRateScanListener(listener: HeartRateNotifyListener) {
         bluetoothIo.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, { data ->
-            Log.d(TAG, Arrays.toString(data))
+            Timber.d(Arrays.toString(data))
             if (data.size == 2 && data[0].toInt() == 6) {
                 val heartRate = data[1].toInt() and 0xFF
                 listener.onNotify(heartRate)
@@ -345,7 +345,7 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // pair
             if (characteristicId == Profile.UUID_CHAR_PAIR) {
-                Log.d(TAG, "pair requested " + pairRequested.toString())
+                Timber.d("pair requested " + pairRequested.toString())
                 if (pairRequested) {
                     bluetoothIo.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR)
                     pairRequested = false
@@ -357,7 +357,7 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // Battery info
             if (characteristicId == Profile.UUID_CHAR_BATTERY) {
-                Log.d(TAG, "getBatteryInfo result " + Arrays.toString(data.value))
+                Timber.d("getBatteryInfo result " + Arrays.toString(data.value))
                 if (data.value.size == 10) {
                     val info = BatteryInfo.fromByteData(data.value)
 
@@ -371,7 +371,7 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // Pair
             if (characteristicId == Profile.UUID_CHAR_PAIR) {
-                Log.d(TAG, "Pair result " + Arrays.toString(data.value))
+                Timber.d("Pair result " + Arrays.toString(data.value))
                 if (data.value.size == 1 && data.value[0].toInt() == 2) {
                     pairSubject.onComplete()
                 } else {
@@ -468,42 +468,42 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // Battery info
             if (characteristicId == Profile.UUID_CHAR_BATTERY) {
-                Log.d(TAG, "getBatteryInfo failed: " + msg)
+                Timber.d("getBatteryInfo failed: " + msg)
                 batteryInfoSubject.onError(Exception("Wrong data format for battery info"))
                 batteryInfoSubject = PublishSubject.create()
             }
 
             // Pair
             if (characteristicId == Profile.UUID_CHAR_PAIR) {
-                Log.d(TAG, "Pair failed " + msg)
+                Timber.d("Pair failed " + msg)
                 pairSubject.onError(Exception("Pairing failed"))
                 pairSubject = PublishSubject.create()
             }
 
             // sensor notify
             if (characteristicId == Profile.UUID_CHAR_CONTROL_POINT) {
-                Log.d(TAG, "Sensor notify failed " + msg)
+                Timber.d("Sensor notify failed " + msg)
                 sensorNotificationSubject.onError(Exception("Sensor notify failed"))
                 sensorNotificationSubject = PublishSubject.create()
             }
 
             // realtime notify
             if (characteristicId == Profile.UUID_CHAR_CONTROL_POINT) {
-                Log.d(TAG, "Realtime notify failed " + msg)
+                Timber.d("Realtime notify failed " + msg)
                 realtimeNotificationSubject.onError(Exception("Realtime notify failed"))
                 realtimeNotificationSubject = PublishSubject.create()
             }
 
             // led color
             if (characteristicId == Profile.UUID_CHAR_CONTROL_POINT) {
-                Log.d(TAG, "Led color failed")
+                Timber.d("Led color failed")
                 ledColorSubject.onError(Exception("Changing LED color failed"))
                 ledColorSubject = PublishSubject.create()
             }
 
             // user info
             if (characteristicId == Profile.UUID_CHAR_USER_INFO) {
-                Log.d(TAG, "User info failed")
+                Timber.d("User info failed")
                 userInfoSubject.onError(Exception("Setting User info failed"))
                 userInfoSubject = PublishSubject.create()
             }
@@ -512,7 +512,7 @@ class MiBand(private val context: Context) : BluetoothListener {
         // vibration service
         if (serviceUUID == Profile.UUID_SERVICE_VIBRATION) {
             if (characteristicId == Profile.UUID_CHAR_VIBRATION) {
-                Log.d(TAG, "Enable/disable vibration failed")
+                Timber.d("Enable/disable vibration failed")
                 stopVibrationSubject.onError(Exception("Enable/disable vibration failed"))
                 stopVibrationSubject = PublishSubject.create()
             }
@@ -521,7 +521,7 @@ class MiBand(private val context: Context) : BluetoothListener {
         // heart rate
         if (serviceUUID == Profile.UUID_SERVICE_HEARTRATE) {
             if (characteristicId == Profile.UUID_CHAR_HEARTRATE) {
-                Log.d(TAG, "Reading heartrate failed")
+                Timber.d("Reading heartrate failed")
                 heartRateSubject.onError(Exception("Reading heartrate failed"))
                 heartRateSubject = PublishSubject.create()
             }
@@ -529,7 +529,7 @@ class MiBand(private val context: Context) : BluetoothListener {
     }
 
     override fun onFail(errorCode: Int, msg: String) {
-        Log.d(TAG, String.format("onFail: errorCode %d, message %s", errorCode, msg))
+        Timber.d(String.format("onFail: errorCode %d, message %s", errorCode, msg))
         when (errorCode) {
             ERROR_CONNECTION_FAILED -> {
                 connectionSubject.onError(Exception("Establishing connection failed"))
