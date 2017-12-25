@@ -17,7 +17,7 @@ class LeParams {
 
     companion object {
         fun fromByte(data: ByteArray): LeParams {
-            var params = LeParams()
+            val params = LeParams()
             params.connIntMax = 0xffff and (0xff and data[0].toInt() or (0xff and data[1].toInt() shl 8))
             params.connIntMax = 0xffff and (0xff and data[2].toInt() or (0xff and data[3].toInt() shl 8))
             params.latency = 0xffff and (0xff and data[4].toInt() or (0xff and data[5].toInt() shl 8))

@@ -2,8 +2,8 @@ package com.khmelenko.lab.miband
 
 import android.bluetooth.*
 import android.content.Context
-import android.util.Log
 import com.khmelenko.lab.miband.model.Profile
+import timber.log.Timber
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -16,8 +16,6 @@ const val ERROR_READ_RSSI_FAILED = 2
  * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
  */
 internal class BluetoothIO(private val listener: BluetoothListener?) : BluetoothGattCallback() {
-
-    private val TAG = "BluetoothIO"
 
     private var bluetoothGatt: BluetoothGatt? = null
 
@@ -219,7 +217,7 @@ internal class BluetoothIO(private val listener: BluetoothListener?) : Bluetooth
     override fun onReadRemoteRssi(gatt: BluetoothGatt, rssi: Int, status: Int) {
         super.onReadRemoteRssi(gatt, rssi, status)
         if (BluetoothGatt.GATT_SUCCESS == status) {
-            Log.d(TAG, "onReadRemoteRssi:" + rssi)
+            Timber.d("onReadRemoteRssi: ${rssi}")
             notifyWithResult(rssi)
         } else {
             notifyWithFail(ERROR_READ_RSSI_FAILED, "onCharacteristicRead fail: " + status.toString())
@@ -234,7 +232,7 @@ internal class BluetoothIO(private val listener: BluetoothListener?) : Bluetooth
     @Throws(IllegalStateException::class)
     private fun checkConnectionState() {
         if (bluetoothGatt == null) {
-            Log.e(TAG, "Connect device first")
+            Timber.e("Connect device first")
             throw IllegalStateException("Device is not connected")
         }
     }
@@ -244,13 +242,13 @@ internal class BluetoothIO(private val listener: BluetoothListener?) : Bluetooth
      */
     private fun checkAvailableServices() {
         for (service in bluetoothGatt?.services.orEmpty()) {
-            Log.d(TAG, "onServicesDiscovered:" + service.uuid)
+            Timber.d("onServicesDiscovered: ${service.uuid}")
 
             for (characteristic in service.characteristics) {
-                Log.d(TAG, "  char:" + characteristic.uuid)
+                Timber.d("  char: ${characteristic.uuid}")
 
                 for (descriptor in characteristic.descriptors) {
-                    Log.d(TAG, "    descriptor:" + descriptor.uuid)
+                    Timber.d("    descriptor: ${descriptor.uuid}")
                 }
             }
         }
