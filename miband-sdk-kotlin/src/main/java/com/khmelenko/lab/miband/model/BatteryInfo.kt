@@ -19,12 +19,11 @@ class BatteryInfo private constructor(val level: Int,
         companion object {
 
             fun fromByte(b: Byte): Status {
-                when (b) {
-                    1.toByte() -> return LOW
-                    2.toByte() -> return CHARGING
-                    3.toByte() -> return FULL
-                    4.toByte() -> return NOT_CHARGING
-
+                when (b.toInt()) {
+                    1 -> return LOW
+                    2 -> return CHARGING
+                    3 -> return FULL
+                    4 -> return NOT_CHARGING
                     else -> return UNKNOWN
                 }
             }

@@ -22,8 +22,6 @@ import java.util.*
  */
 class MiBand(private val context: Context) : BluetoothListener {
 
-    private val TAG = "miband-android"
-
     private val bluetoothIo: BluetoothIO = BluetoothIO(this)
 
     private var connectionSubject: PublishSubject<Boolean> = PublishSubject.create()
@@ -157,11 +155,10 @@ class MiBand(private val context: Context) : BluetoothListener {
      */
     fun startVibration(mode: VibrationMode): Observable<Void> {
         return Observable.create<Void> { subscriber ->
-            val protocol: ByteArray
-            when (mode) {
-                VibrationMode.VIBRATION_WITH_LED -> protocol = Protocol.VIBRATION_WITH_LED
-                VibrationMode.VIBRATION_10_TIMES_WITH_LED -> protocol = Protocol.VIBRATION_10_TIMES_WITH_LED
-                VibrationMode.VIBRATION_WITHOUT_LED -> protocol = Protocol.VIBRATION_WITHOUT_LED
+            val protocol = when (mode) {
+                VibrationMode.VIBRATION_WITH_LED -> Protocol.VIBRATION_WITH_LED
+                VibrationMode.VIBRATION_10_TIMES_WITH_LED -> Protocol.VIBRATION_10_TIMES_WITH_LED
+                VibrationMode.VIBRATION_WITHOUT_LED -> Protocol.VIBRATION_WITHOUT_LED
             }
             startVibrationSubject.subscribe(ObserverWrapper(subscriber))
             bluetoothIo.writeCharacteristic(Profile.UUID_SERVICE_VIBRATION, Profile.UUID_CHAR_VIBRATION, protocol)
@@ -345,7 +342,7 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // pair
             if (characteristicId == Profile.UUID_CHAR_PAIR) {
-                Timber.d("pair requested " + pairRequested.toString())
+                Timber.d("pair requested $pairRequested")
                 if (pairRequested) {
                     bluetoothIo.readCharacteristic(Profile.UUID_SERVICE_MILI, Profile.UUID_CHAR_PAIR)
                     pairRequested = false
@@ -357,7 +354,7 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // Battery info
             if (characteristicId == Profile.UUID_CHAR_BATTERY) {
-                Timber.d("getBatteryInfo result " + Arrays.toString(data.value))
+                Timber.d("getBatteryInfo result ${Arrays.toString(data.value)}")
                 if (data.value.size == 10) {
                     val info = BatteryInfo.fromByteData(data.value)
 
@@ -371,7 +368,7 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // Pair
             if (characteristicId == Profile.UUID_CHAR_PAIR) {
-                Timber.d("Pair result " + Arrays.toString(data.value))
+                Timber.d("Pair result ${Arrays.toString(data.value)}")
                 if (data.value.size == 1 && data.value[0].toInt() == 2) {
                     pairSubject.onComplete()
                 } else {

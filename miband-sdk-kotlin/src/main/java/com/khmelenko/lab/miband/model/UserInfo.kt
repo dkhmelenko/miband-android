@@ -18,11 +18,10 @@ class UserInfo private constructor(val uid: Int,
                                    val type: Byte) {
 
     fun getBytes(mBTAddress: String): ByteArray {
-        var aliasBytes: ByteArray
-        try {
-            aliasBytes = this.alias.toByteArray(charset("UTF-8"))
+        val aliasBytes = try {
+            this.alias.toByteArray(charset("UTF-8"))
         } catch (e: UnsupportedEncodingException) {
-            aliasBytes = ByteArray(0)
+            ByteArray(0)
         }
 
         val bf = ByteBuffer.allocate(20)

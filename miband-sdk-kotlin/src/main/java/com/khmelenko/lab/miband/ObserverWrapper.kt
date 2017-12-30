@@ -26,6 +26,4 @@ internal class ObserverWrapper<T>(private val emitter: Emitter<T>) : Observer<T>
     override fun onComplete() {
         emitter.onComplete()
     }
-
-
 }
