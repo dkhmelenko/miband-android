@@ -8,10 +8,10 @@ import java.util.*
 
  * @author Dmytro Khmelenko
  */
-class BatteryInfo private constructor(val level: Int,
-                                      val cycles: Int,
-                                      val status: Status?,
-                                      val lastChargedDate: Calendar = Calendar.getInstance()) {
+class BatteryInfo private constructor(private val level: Int,
+                                      private val cycles: Int,
+                                      private val status: Status?,
+                                      private val lastChargedDate: Calendar = Calendar.getInstance()) {
 
     internal enum class Status {
         UNKNOWN, LOW, FULL, CHARGING, NOT_CHARGING;
@@ -19,12 +19,12 @@ class BatteryInfo private constructor(val level: Int,
         companion object {
 
             fun fromByte(b: Byte): Status {
-                when (b.toInt()) {
-                    1 -> return LOW
-                    2 -> return CHARGING
-                    3 -> return FULL
-                    4 -> return NOT_CHARGING
-                    else -> return UNKNOWN
+                return when (b.toInt()) {
+                    1 -> LOW
+                    2 -> CHARGING
+                    3 -> FULL
+                    4 -> NOT_CHARGING
+                    else -> UNKNOWN
                 }
             }
         }

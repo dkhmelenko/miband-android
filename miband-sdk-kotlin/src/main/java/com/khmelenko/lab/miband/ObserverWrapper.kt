@@ -7,7 +7,7 @@ import io.reactivex.disposables.Disposable
 /**
  * Wraps [Observer] with [Emitter]
 
- * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
+ * @author Dmytro Khmelenko
  */
 internal class ObserverWrapper<T>(private val emitter: Emitter<T>) : Observer<T> {
 

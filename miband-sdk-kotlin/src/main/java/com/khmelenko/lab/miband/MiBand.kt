@@ -18,7 +18,7 @@ import java.util.*
 /**
  * Main class for interacting with MiBand
 
- * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
+ * @author Dmytro Khmelenko
  */
 class MiBand(private val context: Context) : BluetoothListener {
 

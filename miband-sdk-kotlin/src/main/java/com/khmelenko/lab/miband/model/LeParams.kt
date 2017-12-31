@@ -3,7 +3,7 @@ package com.khmelenko.lab.miband.model
 /**
  * LE parameters
  *
- * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
+ * @author Dmytro Khmelenko
  */
 class LeParams {
 

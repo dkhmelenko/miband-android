@@ -1,7 +1,7 @@
 package com.khmelenko.lab.miband.model
 
 /**
- * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
+ * @author Dmytro Khmelenko
  */
 enum class LedColor {
     RED,

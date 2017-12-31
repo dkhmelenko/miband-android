@@ -13,7 +13,7 @@ const val ERROR_READ_RSSI_FAILED = 2
 /**
  * Defines Bluetooth communication
  *
- * @author Dmytro Khmelenko (d.khmelenko@gmail.com)
+ * @author Dmytro Khmelenko
  */
 internal class BluetoothIO(private val listener: BluetoothListener?) : BluetoothGattCallback() {
 
