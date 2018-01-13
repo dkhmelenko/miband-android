@@ -19,7 +19,7 @@ internal class BluetoothIO(private val listener: BluetoothListener?) : Bluetooth
 
     private var bluetoothGatt: BluetoothGatt? = null
 
-    private var notifyListeners: HashMap<UUID, (ByteArray) -> Unit> = HashMap<UUID, (ByteArray) -> Unit>()
+    private var notifyListeners: HashMap<UUID, (ByteArray) -> Unit> = HashMap()
 
     /**
      * Connects to the Bluetooth device

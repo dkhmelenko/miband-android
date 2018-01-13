@@ -465,28 +465,28 @@ class MiBand(private val context: Context) : BluetoothListener {
 
             // Battery info
             if (characteristicId == Profile.UUID_CHAR_BATTERY) {
-                Timber.d("getBatteryInfo failed: " + msg)
+                Timber.d("getBatteryInfo failed: $msg")
                 batteryInfoSubject.onError(Exception("Wrong data format for battery info"))
                 batteryInfoSubject = PublishSubject.create()
             }
 
             // Pair
             if (characteristicId == Profile.UUID_CHAR_PAIR) {
-                Timber.d("Pair failed " + msg)
+                Timber.d("Pair failed $msg")
                 pairSubject.onError(Exception("Pairing failed"))
                 pairSubject = PublishSubject.create()
             }
 
             // sensor notify
             if (characteristicId == Profile.UUID_CHAR_CONTROL_POINT) {
-                Timber.d("Sensor notify failed " + msg)
+                Timber.d("Sensor notify failed $msg")
                 sensorNotificationSubject.onError(Exception("Sensor notify failed"))
                 sensorNotificationSubject = PublishSubject.create()
             }
 
             // realtime notify
             if (characteristicId == Profile.UUID_CHAR_CONTROL_POINT) {
-                Timber.d("Realtime notify failed " + msg)
+                Timber.d("Realtime notify failed $msg")
                 realtimeNotificationSubject.onError(Exception("Realtime notify failed"))
                 realtimeNotificationSubject = PublishSubject.create()
             }
