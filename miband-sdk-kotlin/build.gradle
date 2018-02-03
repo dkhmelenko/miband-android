@@ -32,18 +32,18 @@ ext {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile "com.android.support:appcompat-v7:$libraries.support"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    compile "io.reactivex:rxandroid:$libraries.rxAndroid"
-    compile "io.reactivex.rxjava2:rxjava:$libraries.rxJava"
-    compile "com.jakewharton.timber:timber:$libraries.timber"
+    implementation "com.android.support:appcompat-v7:$libraries.support"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "io.reactivex:rxandroid:$libraries.rxAndroid"
+    implementation "io.reactivex.rxjava2:rxjava:$libraries.rxJava"
+    implementation "com.jakewharton.timber:timber:$libraries.timber"
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 repositories {
     mavenCentral()
