@@ -30,15 +30,18 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+
     implementation "com.android.support:appcompat-v7:$libraries.support"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "io.reactivex:rxandroid:$libraries.rxAndroid"
+    implementation "io.reactivex.rxjava2:rxjava:$libraries.rxJava"
+    implementation "com.jakewharton.timber:timber:$libraries.timber"
 
     implementation 'com.jakewharton:butterknife:8.4.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
 
     implementation project (":miband-sdk")
     implementation project (":miband-sdk-kotlin")
-
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 repositories {
     mavenCentral()

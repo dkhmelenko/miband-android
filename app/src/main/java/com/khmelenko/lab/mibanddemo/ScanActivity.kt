@@ -36,7 +36,7 @@ class ScanActivity : AppCompatActivity() {
         miBand = MiBand(this)
         adapter = ArrayAdapter(this, R.layout.item, ArrayList())
 
-        val startScanButton = findViewById(R.id.starScanButton) as Button
+        val startScanButton = findViewById<Button>(R.id.starScanButton)
         startScanButton.setOnClickListener { _ ->
             Timber.d("Scanning started...")
             val disposable = miBand.startScan()
@@ -44,13 +44,13 @@ class ScanActivity : AppCompatActivity() {
             disposables.add(disposable)
         }
 
-        findViewById(R.id.stopScanButton).setOnClickListener { _ ->
+        findViewById<Button>(R.id.stopScanButton).setOnClickListener { _ ->
             Timber.d("Stop scanning...")
             val disposable = miBand.stopScan().subscribe(handleScanResult(), handleScanError())
             disposables.add(disposable)
         }
 
-        val lv = findViewById(R.id.listView) as ListView
+        val lv = findViewById<ListView>(R.id.listView)
         lv.adapter = adapter
         lv.setOnItemClickListener { parent, view, position, id ->
             val item = (view as TextView).text.toString()
