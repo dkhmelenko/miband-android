@@ -37,8 +37,8 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxjava:$libraries.rxJava"
     implementation "com.jakewharton.timber:timber:$libraries.timber"
 
-    implementation 'com.jakewharton:butterknife:8.4.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     implementation project (":miband-sdk")
     implementation project (":miband-sdk-kotlin")
