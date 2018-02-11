@@ -1,0 +1,6 @@
+ext.libraries = [
+        support  : '27.0.2',
+        rxJava   : '2.1.9',
+        rxAndroid: '1.2.1',
+        timber   : '4.6.0'
+]

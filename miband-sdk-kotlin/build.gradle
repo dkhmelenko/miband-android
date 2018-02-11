@@ -22,15 +22,6 @@ android {
     }
 }
 
-ext {
-    libraries = [
-            support  : '27.0.2',
-            rxJava   : '2.1.9',
-            rxAndroid: '1.2.1',
-            timber   : '4.6.0'
-    ]
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
