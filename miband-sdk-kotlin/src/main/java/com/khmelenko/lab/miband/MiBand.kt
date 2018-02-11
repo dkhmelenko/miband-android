@@ -301,13 +301,28 @@ class MiBand(private val context: Context) : BluetoothListener {
 
     /**
      * Sets heart rate scanner listener
-
+     *
      * @param listener Listener
      */
     fun setHeartRateScanListener(listener: HeartRateNotifyListener) {
         bluetoothIo.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, { data ->
             Timber.d(Arrays.toString(data))
             if (data.size == 2 && data[0].toInt() == 6) {
+                val heartRate = data[1].toInt() and 0xFF
+                listener.onNotify(heartRate)
+            }
+        })
+    }
+
+    /**
+     * Sets heart rate scanner listener for Xiaomi MiBand 2
+     *
+     * @param listener Listener
+     */
+    fun setHeartRateScanListenerMiBand2(listener: HeartRateNotifyListener) {
+        bluetoothIo.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, { data ->
+            Timber.d(Arrays.toString(data))
+            if (data.size == 2 && data[0].toInt() == 0) {
                 val heartRate = data[1].toInt() and 0xFF
                 listener.onNotify(heartRate)
             }

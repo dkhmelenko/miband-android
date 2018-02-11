@@ -373,6 +373,21 @@ public final class MiBand implements BluetoothListener {
     }
 
     /**
+     * Sets heart rate scanner listener for Xiaomi MiBand 2
+     *
+     * @param listener Listener
+     */
+    public void setHeartRateScanListenerMiBand2(final HeartRateNotifyListener listener) {
+        mBluetoothIO.setNotifyListener(Profile.UUID_SERVICE_HEARTRATE, Profile.UUID_NOTIFICATION_HEARTRATE, data -> {
+            Log.d(TAG, Arrays.toString(data));
+            if (data.length == 2 && data[0] == 0) {
+                int heartRate = data[1] & 0xFF;
+                listener.onNotify(heartRate);
+            }
+        });
+    }
+
+    /**
      * Notify for connection results
      *
      * @param result True, if connected. False if disconnected
