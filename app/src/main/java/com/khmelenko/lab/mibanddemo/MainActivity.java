@@ -1,43 +1,40 @@
 package com.khmelenko.lab.mibanddemo;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-
+import android.util.Log;
+import android.widget.Toast;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import com.khmelenko.lab.miband.MiBand;
 import com.khmelenko.lab.miband.model.UserInfo;
 import com.khmelenko.lab.miband.model.VibrationMode;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import timber.log.Timber;
-import android.Manifest;
-import android.util.Log;
-import android.view.View;
 
 /**
  * Main application activity
  *
  * @author Dmytro Khmelenko
  */
-public class MainActivity extends AppCompatActivity implements LocationListener{
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private MiBand mMiBand;
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    public static final int PERMISSIONS_REQUEST_LOCATION = 99;
     private LocationManager locationManager;
     private String provider;
 
@@ -200,81 +197,53 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
         mMiBand.disableSensorDataNotify();
     }
 
-    public boolean checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
 
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
                 new AlertDialog.Builder(this)
                         .setTitle("Location permission")
-                        .setMessage("Please give location permission")
-                        .setPositiveButton("Ok", (dialogInterface, i) -> {
+                        .setMessage("Mi Band needs to access your location in order to continue working.")
+                        .setPositiveButton("OK", (dialogInterface, i) -> {
                             //Prompt the user once explanation has been shown
                             ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    MY_PERMISSIONS_REQUEST_LOCATION);
+                                    new String[]{ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION);
                         })
                         .create()
                         .show();
-
-
             } else {
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_LOCATION);
+                        new String[]{ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_LOCATION);
             }
-            return false;
-        } else {
-            return true;
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
+            case PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // location-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-
-                        //Request location updates:
-                        locationManager.requestLocationUpdates(provider, 400, 1, this);
-                    }
-
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Location permission granted", Toast.LENGTH_SHORT).show();
+                    locationManager.requestLocationUpdates(provider, 400, 1, this);
                 } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-
+                    Toast.makeText(this, "Location permission denied. Please grant location permission.",
+                            Toast.LENGTH_SHORT).show();
                 }
-                return;
             }
-
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
+        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(provider, 400, 1, this);
         }
     }
@@ -282,37 +251,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
     @Override
     protected void onPause() {
         super.onPause();
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
+        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.removeUpdates(this);
         }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
         Double lat = location.getLatitude();
         Double lng = location.getLongitude();
 
         Log.i("Location info: Lat", lat.toString());
         Log.i("Location info: Lng", lng.toString());
-
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-
+        // do nothing
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-
+        // do nothing
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-
+        // do nothing
     }
 }
