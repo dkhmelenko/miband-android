@@ -24,6 +24,7 @@ import com.khmelenko.lab.miband.model.VibrationMode;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import kotlin.Unit;
 import timber.log.Timber;
 
 /**
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @OnClick(R.id.action_set_user_info)
     public void actionSetUserInfo() {
-        UserInfo userInfo = new UserInfo(20271234, 1, 32, 160, 40, "alias", 0);
+        UserInfo userInfo = new UserInfo(20271234, (byte) 1, (byte) 32, (byte) 160, (byte) 40, "alias", (byte) 0);
         Timber.d("setUserInfo:" + userInfo.toString() + ",data:" + Arrays.toString(userInfo.getBytes(mMiBand.getDevice().getAddress())));
         mMiBand.setUserInfo(userInfo)
                 .subscribe(aVoid -> {
@@ -153,7 +154,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @OnClick(R.id.action_set_notify_listener)
     public void actionSetNotifyListener() {
-        mMiBand.setNormalNotifyListener(data -> Timber.d("NormalNotifyListener:" + Arrays.toString(data)));
+        mMiBand.setNormalNotifyListener(data -> {
+            Timber.d("NormalNotifyListener:" + Arrays.toString(data));
+            return Unit.INSTANCE;
+        });
     }
 
     @OnClick(R.id.action_set_realtime_notify_listener)
@@ -184,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             String logMsg = index + "," + d1 + "," + d2 + "," + d3;
             Timber.d(logMsg);
+            return Unit.INSTANCE;
         });
     }
 

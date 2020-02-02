@@ -9,13 +9,13 @@ import java.nio.charset.Charset
 
  * @author Dmytro Khmelenko
  */
-class UserInfo private constructor(private val uid: Int,
-                                   private val gender: Byte,
-                                   private val age: Byte,
-                                   private val height: Byte,
-                                   private val weight: Byte,
-                                   private val alias: String,
-                                   private val type: Byte) {
+class UserInfo constructor(private val uid: Int,
+                           private val gender: Byte,
+                           private val age: Byte,
+                           private val height: Byte,
+                           private val weight: Byte,
+                           private val alias: String,
+                           private val type: Byte) {
 
     fun getBytes(mBTAddress: String): ByteArray {
         val aliasBytes = try {

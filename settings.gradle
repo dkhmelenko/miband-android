@@ -1,1 +1,1 @@
-include ':app', ':miband-sdk', ':miband-sdk-kotlin'
+include ':app', ':miband-sdk-kotlin'
