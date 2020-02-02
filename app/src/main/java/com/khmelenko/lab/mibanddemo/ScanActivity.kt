@@ -4,7 +4,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanResult
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView

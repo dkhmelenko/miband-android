@@ -33,14 +33,14 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "com.android.support:appcompat-v7:$libraries.support"
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "io.reactivex.rxjava2:rxandroid:$libraries.rxAndroid"
     implementation "io.reactivex.rxjava2:rxjava:$libraries.rxJava"
     implementation "com.jakewharton.timber:timber:$libraries.timber"
 
-    implementation 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    implementation 'com.jakewharton:butterknife:10.2.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
 
     implementation project (":miband-sdk-kotlin")
 }
