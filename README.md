@@ -2,7 +2,7 @@
 
 # Overview
 
-This is unofficial SDK for Mi Band. The sample app how to use the library. The app was not tested with Mi Band 2. In case some of the method returns incorrect data or works wrong, pleare report an issue. 
+This is unofficial SDK for Mi Band. The sample app how to use the library. The app was not tested with Mi Band 2 or newer bands. In case some of the method returns incorrect data or works wrong, pleare report an issue. 
 
 The idea came from [this project](https://github.com/pangliang/miband-sdk-android). However, due to reactive vision of SDK it was reimplemented. Most of methods are implemented using [RxJava](https://github.com/ReactiveX/RxJava) library.
 
@@ -12,8 +12,8 @@ In case you have ideas or found an issue, don't hesitate to create pull request 
 # Usage
 **IMPORTANT: Use this SDK on your own risk, developer of this SDK is NOT responsible for any unpredictable results.** <br/> <br/>
 
-** How to use
-*** Discovery
+## How to use
+### Discovery
 In order to start sending and receiving commands from the MiBand, you have to connect and pair with it. Available devices for connection can be found using `startScan()` method.
 
 ```kotlin
@@ -24,7 +24,7 @@ miBand.startScan().subscribe { result ->
 ```
 Scanning can be interrupted any time using the method `stopScan()`.
 
-*** Connection
+### Connection
 Next action is to establish connection to the device (MiBand). The fuction `connect(device)` is responsible for that. The fuction returns Observable which emits a boolean value indicating if connection was established or not.
 ```kotlin
 miBand.connect(device).subscribe { connected ->
@@ -41,7 +41,7 @@ miBand.pair().subscribe {
                 // device is ready for communication
             }
 ```
-*** Communication
+### Communication
 When the band is connected and paired many different actions can be performed such as read battery information, start/stop vibration, read and change user information, read current steps in realtime, read heartrate and many other.
 
 There are few examples how to perform those actions. 
@@ -66,6 +66,21 @@ miBand.setRealtimeStepsNotifyListener(object: RealtimeStepsNotifyListener {
             })
 miBand.enableRealtimeStepsNotify().subscribe()
 ```
+Reading heartrate can be done in a similar way: first setup the listener using `setHeartRateScanListener()` and then call the method `startHeartRateScan()`.
+
+
+All available methods for reading band information are available in class (MiBand.kt)[https://github.com/dkhmelenko/miband-android/blob/master/miband-sdk-kotlin/src/main/java/com/khmelenko/lab/miband/MiBand.kt]. All methods have JavaDoc documentation explaining how the method works. They are:
+* startScan()
+* stopScan()
+* connect(device)
+* pair()
+* readRssi()
+* batteryInfo()
+* startVibration() / stopVibration()
+* enableRealtimeStepsNotify() / disableRealtimeStepsNotify()
+* setUserInfo(userInfo)
+* startHeartRateScan()
+* setLedColor()
 
 # License
 
