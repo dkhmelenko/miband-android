@@ -1,6 +1,6 @@
-[![GitHub Actions](https://github.com/dkhmelenko/miband-android/workflows/Android%20CI/badge.svg)](https://github.com/dkhmelenko/miband-android/actions)
-
 # Overview
+
+[![GitHub Actions](https://github.com/dkhmelenko/miband-android/workflows/Android%20CI/badge.svg)](https://github.com/dkhmelenko/miband-android/actions)
 
 This is unofficial SDK for Mi Band. This repository contains 2 modules:
 * miband-sdk-kotlin -- SDK for interraction with the MiBand
@@ -15,7 +15,6 @@ In case you have ideas or found an issue, don't hesitate to create pull request 
 
 # How to use
 **IMPORTANT: Use this SDK on your own risk, developer of this SDK is NOT responsible for any unpredictable results.** <br/> <br/>
-
 
 ### Discovery
 In order to start sending and receiving commands from the MiBand, you have to connect and pair with it. Available devices for connection can be found using `startScan()` method.
