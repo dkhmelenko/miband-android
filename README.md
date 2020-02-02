@@ -2,17 +2,21 @@
 
 # Overview
 
-This is unofficial SDK for Mi Band. The sample app how to use the library. The app was not tested with Mi Band 2 or newer bands. In case some of the method returns incorrect data or works wrong, pleare report an issue. 
+This is unofficial SDK for Mi Band. This repository contains 2 modules:
+* miband-sdk-kotlin -- SDK for interraction with the MiBand
+* app -- Sample application demonstrating how to work with SDK.
 
-The idea came from [this project](https://github.com/pangliang/miband-sdk-android). However, due to reactive vision of SDK it was reimplemented. Most of methods are implemented using [RxJava](https://github.com/ReactiveX/RxJava) library.
+The app was not tested with Mi Band 2 or newer bands. In case some of the method returns incorrect data or works wrong, pleare report an issue. 
+
+The idea came from [this project](https://github.com/pangliang/miband-sdk-android). However, due to reactive vision of SDK it was reimplemented. Most of methods are implemented using [RxJava](https://github.com/ReactiveX/RxJava) library. Therefore the basic knowledge of reactive streams is required.
 
 # Contribution
 In case you have ideas or found an issue, don't hesitate to create pull request or an issue.
 
-# Usage
+# How to use
 **IMPORTANT: Use this SDK on your own risk, developer of this SDK is NOT responsible for any unpredictable results.** <br/> <br/>
 
-## How to use
+
 ### Discovery
 In order to start sending and receiving commands from the MiBand, you have to connect and pair with it. Available devices for connection can be found using `startScan()` method.
 
@@ -69,7 +73,7 @@ miBand.enableRealtimeStepsNotify().subscribe()
 Reading heartrate can be done in a similar way: first setup the listener using `setHeartRateScanListener()` and then call the method `startHeartRateScan()`.
 
 
-All available methods for reading band information are available in class (MiBand.kt)[https://github.com/dkhmelenko/miband-android/blob/master/miband-sdk-kotlin/src/main/java/com/khmelenko/lab/miband/MiBand.kt]. All methods have JavaDoc documentation explaining how the method works. They are:
+All available methods for reading band information are available in class [MiBand.kt](https://github.com/dkhmelenko/miband-android/blob/master/miband-sdk-kotlin/src/main/java/com/khmelenko/lab/miband/MiBand.kt). All methods have JavaDoc documentation explaining how the method works. They are:
 * startScan()
 * stopScan()
 * connect(device)
