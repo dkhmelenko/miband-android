@@ -1,3 +1,5 @@
+[![GitHub Actions](https://github.com/dkhmelenko/miband-android/workflows/Android%20CI/badge.svg)](https://github.com/dkhmelenko/miband-android/actions)
+
 # Overview
 
 This is unofficial SDK for Mi Band. The sample app how to use the library. The app was not tested with Mi Band 2. In case some of the method returns incorrect data or works wrong, pleare report an issue. 
