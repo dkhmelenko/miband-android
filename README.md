@@ -12,11 +12,66 @@ In case you have ideas or found an issue, don't hesitate to create pull request 
 # Usage
 **IMPORTANT: Use this SDK on your own risk, developer of this SDK is NOT responsible for any unpredictable results.** <br/> <br/>
 
+** How to use
+*** Discovery
+In order to start sending and receiving commands from the MiBand, you have to connect and pair with it. Available devices for connection can be found using `startScan()` method.
+
+```kotlin
+miBand.startScan().subscribe { result ->
+                val device = result.device
+                // save found device
+            }
+```
+Scanning can be interrupted any time using the method `stopScan()`.
+
+*** Connection
+Next action is to establish connection to the device (MiBand). The fuction `connect(device)` is responsible for that. The fuction returns Observable which emits a boolean value indicating if connection was established or not.
+```kotlin
+miBand.connect(device).subscribe { connected ->
+                if (connected) {
+                    // connection established
+                } else {
+                    // resolve connection issue
+                }
+            }
+```
+After successfully established connection device needs to be paired. The function `pair()` will do pairing to the connected device.
+```kotlin
+miBand.pair().subscribe { 
+                // device is ready for communication
+            }
+```
+*** Communication
+When the band is connected and paired many different actions can be performed such as read battery information, start/stop vibration, read and change user information, read current steps in realtime, read heartrate and many other.
+
+There are few examples how to perform those actions. 
+*Read battery information*
+```kotlin
+miBand.batteryInfo.subscribe { batteryInfo ->
+                ...
+            }
+```
+*Start vibration*
+```kotlin
+miBand.startVibration(VibrationMode.VIBRATION_WITHOUT_LED).subscribe {
+                ...
+            }
+```
+*Realtime steps notification*
+```kotlin
+miBand.setRealtimeStepsNotifyListener(object: RealtimeStepsNotifyListener {
+                override fun onNotify(steps: Int) {
+                    ...
+                }
+            })
+miBand.enableRealtimeStepsNotify().subscribe()
+```
+
 # License
 
 [Apache Licence 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-Copyright 2015 Dmytro Khmelenko
+Copyright 2020 Dmytro Khmelenko
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
