@@ -9,6 +9,33 @@ buildscript {
         jcenter()
     }
     dependencies {
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'com.google.android.gms:play-services-ads:19.0.0'
+}
+<manifest>
+    <application>
+        <!-- Sample AdMob App ID: ca-app-pub-3940256099942544~3347511713 -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8486351742571761~2471148613
+    </application>
+</manifest>
+package ...
+import ...
+import com.google.android.gms.ads.MobileAds;
+
+class MainActivity : AppCompatActivity() {
+    ...
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        MobileAds.initialize(this) {}
+    }
+    ...
+} 
         classpath 'com.android.tools.build:gradle:3.5.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         // NOTE: Do not place your application dependencies here; they belong
