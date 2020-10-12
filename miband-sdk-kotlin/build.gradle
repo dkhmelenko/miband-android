@@ -18,5 +18,5 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxjava:$libraries.rxJava"
     implementation "com.jakewharton.timber:timber:$libraries.timber"
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.1'
 }
