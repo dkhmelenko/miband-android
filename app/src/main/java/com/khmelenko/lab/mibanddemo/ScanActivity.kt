@@ -59,7 +59,7 @@ class ScanActivity : AppCompatActivity() {
                 val disposable = miBand.stopScan().subscribe(handleScanResult(), handleScanError())
                 disposables.add(disposable)
 
-                val intent = Intent(this, MainActivity::class.java)
+                val intent = Intent(this@ScanActivity, MainActivity::class.java)
                 intent.putExtra("device", devices[item])
                 startActivity(intent)
                 finish()
