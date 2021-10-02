@@ -33,9 +33,9 @@ import java.nio.ByteOrder
  */
 class MainActivity : AppCompatActivity(), LocationListener {
 
-    private var miBand: MiBand = MiBand(this)
-    private val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val provider: String = LocationManager.GPS_PROVIDER
+    private lateinit var miBand: MiBand
+    private lateinit var locationManager: LocationManager
+    private lateinit var provider: String
 
     private val disposables = CompositeDisposable()
 
@@ -43,6 +43,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         ButterKnife.bind(this)
+        miBand = MiBand(this)
+        provider = LocationManager.GPS_PROVIDER
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         checkLocationPermission()
     }
@@ -111,7 +114,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
     fun actionSetHeartRateNotifyListener() {
         miBand.setHeartRateScanListener(object : HeartRateNotifyListener {
             override fun onNotify(heartRate: Int) {
-                Timber.d("heart rate: $heartRate")             }
+                Timber.d("heart rate: $heartRate")
+            }
         })
     }
 
@@ -158,9 +162,10 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     @OnClick(R.id.action_set_realtime_notify_listener)
     fun actionSetRealtimeNotifyListener() {
-        miBand.setRealtimeStepsNotifyListener(object : RealtimeStepsNotifyListener{
+        miBand.setRealtimeStepsNotifyListener(object : RealtimeStepsNotifyListener {
             override fun onNotify(steps: Int) {
-                Timber.d("RealtimeStepsNotifyListener:$steps")            }
+                Timber.d("RealtimeStepsNotifyListener:$steps")
+            }
         })
     }
 
@@ -173,7 +178,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
     @OnClick(R.id.action_disable_realtime_steps_notify)
     fun actionDisableRealtimeStepsNotify() {
         val d = miBand.disableRealtimeStepsNotify().subscribe()
-        disposables.add(d)    }
+        disposables.add(d)
+    }
 
     @OnClick(R.id.action_set_sensor_data_notify_listener)
     fun actionSetSensorDataNotifyListener() {
